@@ -1,51 +1,44 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.contrib.auth.models import User
 
-# Model for a movie
+# Modèle des Films
 class Movie(models.Model):
-    title = models.CharField(max_length=100, null=False)
-    synopsis = models.TextField(max_length=500, null=True, blank=True)
-    duration = models.IntegerField(null=False)
-    type = models.CharField(max_length=50, null=False)
-    release_date = models.DateField(null=False)
-    picture_url = models.URLField(max_length=255, null=True, blank=True)
-    rating = models.IntegerField(null=True, blank=True)
+    title = models.CharField(max_length=100)
+    synopsis = models.CharField(max_length=100)
+    duration = models.IntegerField()
+    type = models.CharField(max_length=50)
+    release_date = models.DateField()
+    picture_url = models.CharField(max_length=255)
+    rating = models.IntegerField()
+    api_id = models.IntegerField(unique=True)
 
     def __str__(self):
         return self.title
 
-# Model for a session
+# Modèle des Salles
+class Room(models.Model):
+    capacity = models.IntegerField()
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+# Modèle des Séances
 class Session(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name="sessions")
-    room = models.CharField(max_length=50, null=False)
-    date_hour = models.DateTimeField(null=False)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="sessions")
+    date_hour = models.DateTimeField()
 
     def __str__(self):
-        return f"{self.movie.title} - {self.room} ({self.date_hour})"
+        return f"{self.movie.title} - {self.room.name} ({self.date_hour})"
 
-# Model for a reservation
-class Reservation(models.Model):
-    PAYMENT_STATUS_CHOICES = [
-        ('paid', 'Payé'),
-        ('not paid', 'Non payé'),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reservations")
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, null=False)
-    date = models.DateField(null=False)
-    payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='not paid')
-
-    def __str__(self):
-        return f"Réservation {self.id} - {self.user.email} - {self.payment_status}"
-
-# Model for a basket
+# Modèle du Panier
 class Basket(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name="baskets")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="baskets")
-    quantity = models.IntegerField(null=False)
-
-    class Meta:
-        unique_together = ('session', 'user')  # Un utilisateur ne peut avoir qu'une seule entrée par session
+    quantity = models.IntegerField()
+    payed = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.email} - {self.session.movie.title} ({self.quantity} places)"
+        return f"{self.user.email} - {self.session.movie.title} ({self.quantity})"

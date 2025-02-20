@@ -1,76 +1,68 @@
+from rest_framework import viewsets, permissions
 from django.contrib.auth import get_user_model
-from rest_framework import viewsets
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from rest_framework import status
-from django.shortcuts import get_object_or_404
+from .models import Movie, Room, Session, Basket
+from .serializers import UserSerializer, MovieSerializer, RoomSerializer, SessionSerializer, BasketSerializer
 
-from .models import Movie, Session, Reservation, Basket
-from .serializers import (
-    UserSerializer, MovieSerializer, SessionSerializer, 
-    ReservationSerializer, BasketSerializer
-)
-
-# --- Utilisateurs ---
+# Get the default User model
 User = get_user_model()
 
+# User ViewSet
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    This view handles CRUD operations for users.
+    When creating a new user, the password is automatically hashed.
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]  # Modify this as needed (IsAuthenticated, etc.)
 
-# --- Films ---
-class MovieList(APIView):
-    def get(self, request, format=None):
-        movies = Movie.objects.all()
-        serializer = MovieSerializer(movies, many=True)
-        return Response(serializer.data)
+    def perform_create(self, serializer):
+        """
+        Automatically hashes the password before saving the user.
+        """
+        user = serializer.save()
+        user.set_password(user.password)  # Hash the password
+        user.save()
 
-    def post(self, request, format=None):
-        serializer = MovieSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+# Movie ViewSet
 class MovieViewSet(viewsets.ModelViewSet):
+    """
+    Handles CRUD operations for movies.
+    """
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
+    permission_classes = [permissions.AllowAny]  # Anyone can access
 
-# --- Séances ---
+# Room ViewSet
+class RoomViewSet(viewsets.ModelViewSet):
+    """
+    Handles CRUD operations for rooms.
+    """
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+    permission_classes = [permissions.AllowAny]
+
+# Session ViewSet
 class SessionViewSet(viewsets.ModelViewSet):
+    """
+    Handles CRUD operations for movie sessions.
+    """
     queryset = Session.objects.all()
     serializer_class = SessionSerializer
+    permission_classes = [permissions.AllowAny]
 
-# --- Réservations ---
-class ReservationViewSet(viewsets.ModelViewSet):
-    queryset = Reservation.objects.all()
-    serializer_class = ReservationSerializer
-
-    @action(detail=True, methods=["POST"], url_path="cancel")
-    def cancel_reservation(self, request, pk):
-        reservation = get_object_or_404(Reservation, pk=pk)
-
-        # Simule l'annulation d'une réservation
-        reservation.paiement_status = "not paid"
-        reservation.save()
-
-        return Response({"message": "Réservation annulée"}, status=status.HTTP_200_OK)
-
-# --- Panier ---
+# Basket ViewSet
 class BasketViewSet(viewsets.ModelViewSet):
+    """
+    Handles CRUD operations for baskets.
+    Only authenticated users can access and create a basket.
+    """
     queryset = Basket.objects.all()
     serializer_class = BasketSerializer
+    permission_classes = [permissions.IsAuthenticated]  # Only authenticated users can access
 
-    @action(detail=True, methods=["POST"], url_path="increase-quantity")
-    def increase_quantity(self, request, pk):
-        basket_item = get_object_or_404(Basket, pk=pk)
-
-        data = {"quantity": basket_item.quantity + 1}
-        serializer = self.get_serializer(basket_item, data=data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        """
+        Automatically assigns the logged-in user to the basket.
+        """
+        serializer.save(user=self.request.user)

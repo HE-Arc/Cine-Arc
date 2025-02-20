@@ -1,56 +1,53 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Movie, Session, Reservation, Basket
+from .models import Movie, Session, Basket, Room
 
-User = get_user_model()
+User = get_user_model()  # use default user model
 
-# --- Serializer pour les utilisateurs ---
-User = get_user_model()  # Utiliser le modèle User par défaut de Django
-
+# Serializer User
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, style={'input_type': 'password'})  # Champ masqué en saisie
+    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
     class Meta:
         model = User
-        fields = ["id", "email", "first_name", "last_name", "password"]
+        fields = ["id", "first_name", "last_name", "email", "password", "is_superuser"]
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)  # Hash automatiquement le mot de passe
+        user = User.objects.create_user(**validated_data)  # Hash password
         return user
 
-
-# --- Serializer pour les films ---
+# Serializer Movie
 class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
-        fields = ["id", "title", "synopsis", "duration", "type", "release_date", "picture_url", "rating"]
+        fields = "__all__"
 
-# --- Serializer pour les séances ---
+
+# Serializer Room
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = "__all__"
+
+
+# Serializer Session
 class SessionSerializer(serializers.ModelSerializer):
-    movie = MovieSerializer(read_only=True)  # Inclut les détails du film lié
+    movie = MovieSerializer(read_only=True)
+    room = RoomSerializer(read_only=True)
 
     class Meta:
         model = Session
         fields = ["id", "movie", "room", "date_hour"]
 
-# --- Serializer pour les réservations ---
-class ReservationSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)  # Inclut les détails de l'utilisateur
-    #session = SessionSerializer(read_only=True)  # Inclut les détails de la séance
 
-    class Meta:
-        model = Reservation
-        fields = ["id", "user", "total_amount", "date", "payment_status"]
-
-# --- Serializer pour le panier ---
+# Serializer Basket
 class BasketSerializer(serializers.ModelSerializer):
-    session = SessionSerializer(read_only=True)  # Inclut les détails de la séance
-    user = UserSerializer(read_only=True)  # Inclut les détails de l'utilisateur
+    session = SessionSerializer(read_only=True)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Basket
-        fields = ["session", "user", "quantity"]
-        unique_together = ("session", "user")  # Empêche un utilisateur d'avoir plusieurs entrées pour la même session
+        fields = ["id", "session", "user", "quantity", "payed"]
 
     def validate_quantity(self, value):
         """Empêche une quantité négative ou nulle"""

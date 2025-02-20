@@ -9,7 +9,7 @@ router = DefaultRouter()
 router.register(r"users", views.UserViewSet, basename="user")
 router.register(r"movies", views.MovieViewSet, basename="movie")
 router.register(r"sessions", views.SessionViewSet, basename="session")
-router.register(r"reservations", views.ReservationViewSet, basename="reservation")
+router.register(r"room", views.RoomViewSet, basename="room")
 router.register(r"basket", views.BasketViewSet, basename="basket")
 
 # Finalisation des urlpatterns
