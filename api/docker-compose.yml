@@ -1,0 +1,37 @@
+services:
+  django:
+    build: .
+    container_name: cinearc_django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: cinearc_redis
+    ports:
+      - "6379:6379"
+
+  celery:
+    build: .
+    container_name: cinearc_celery
+    command: celery -A cinearc worker -l info --pool=solo -E
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - django
+
+  celerybeat:
+    build: .
+    container_name: cinearc_celerybeat
+    command: celery -A cinearc beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - django
