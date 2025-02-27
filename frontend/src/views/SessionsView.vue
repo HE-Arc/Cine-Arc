@@ -1,6 +1,9 @@
 <script setup>
 import axios from "axios";
 import { ref, onMounted, watch, nextTick } from "vue";
+import { useRouter } from "vue-router"; // Importation du router
+
+const router = useRouter(); // Initialisation du router
 
 const movies = ref([]);
 const rooms = ref([]);
@@ -109,12 +112,20 @@ const deleteSession = async (sessionId) => {
     errors.value = "Erreur lors de la suppression.";
   }
 };
+
+//Rediriger vers la page Ajouter un film
+const goToAddMovie = () => {
+  router.push("/add-movie");
+};
 </script>
 
 <template>
   <div class="container">
     <h1>Gestion des Séances</h1>
-    
+
+    <!-- ✅ Bouton pour Ajouter un Film -->
+    <button class="add-movie-btn" @click="goToAddMovie">🎬 Ajouter un Film</button>
+
     <form ref="formRef" @submit.prevent="submit">
       <label>Film :</label>
       <select v-model="movieId" required>
@@ -136,7 +147,7 @@ const deleteSession = async (sessionId) => {
       <input v-model="dateHour" type="datetime-local" required />
 
       <button :class="isEditing ? 'edit-btn' : 'create-btn'" type="submit">
-        {{ isEditing ? "Modifier" : "Créer" }}
+        {{ isEditing ? "Modifier" : "Créer une séance" }}
       </button>
     </form>
 
@@ -208,11 +219,8 @@ li {
 }
 
 .movie-thumb {
-  width: 50px;
-  height: 75px;
-  object-fit: cover;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  width: 60px;  /* Un peu plus grand pour mieux voir l'affiche */
+  height: 90px;
 }
 
 .session-details {
@@ -226,30 +234,57 @@ li {
 }
 
 button {
-  color: white;
+  width: 100%; /* ✅ Tous les boutons prennent toute la largeur */
+  padding: 10px;
   border: none;
-  padding: 5px 10px;
-  cursor: pointer;
   border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  text-align: center;
+  display: block; /* ✅ Empêche les petits écarts de taille */
 }
 
 button:hover {
   opacity: 0.8;
 }
 
-/* Bouton Créer en Vert */
+/* ✅ Bouton "Créer" en vert */
 .create-btn {
-  background-color: #28a745; /* Vert */
+  background-color: #28a745;
 }
 
-/* Bouton Modifier en Orange */
+.create-btn:hover {
+  background-color: #218838;
+}
+
+/* ✅ Bouton "Ajouter un Film" en bleu */
+.add-movie-btn {
+  background-color: #007bff;
+  margin-top: 10px;
+}
+
+.add-movie-btn:hover {
+  background-color: #0056b3;
+}
+
+/* ✅ Bouton Modifier en Orange */
 .edit-btn {
-  background-color: #ff9800; /* Orange */
+  background-color: #ff9800;
 }
 
-/* Bouton Supprimer en Rouge */
+.edit-btn:hover {
+  background-color: #e68900;
+}
+
+/* ✅ Bouton Supprimer en Rouge */
 .delete-btn {
-  background-color: #d32f2f; /* Rouge */
+  background-color: #d32f2f;
+}
+
+.delete-btn:hover {
+  background-color: #b71c1c;
 }
 
 .success {

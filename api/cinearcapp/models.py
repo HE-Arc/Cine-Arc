@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 # Modèle des Films
 class Movie(models.Model):
     title = models.CharField(max_length=100)
-    synopsis = models.CharField(max_length=100)
+    synopsis = models.CharField(max_length=500)
     duration = models.IntegerField()
     type = models.CharField(max_length=50)
     release_date = models.DateField()
