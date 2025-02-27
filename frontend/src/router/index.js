@@ -23,11 +23,11 @@ const router = createRouter({
       name: 'sessions',
       component: () => import('../views/SessionsView.vue'), // Nouvelle page
     },
-    // {
-    //   path: '/add-movie',
-    //   name: 'add-movie',
-    //   component: () => import('../views/AddMovie.vue'),
-    // },
+    {
+      path: '/add-movie',
+      name: 'add-movie',
+      component: () => import('../views/AddMovie.vue'),
+    },
   ],
 })
 

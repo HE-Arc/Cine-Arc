@@ -1,6 +1,6 @@
 <script setup>
 import axios from "axios";
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, nextTick } from "vue";
 
 const movies = ref([]);
 const rooms = ref([]);
@@ -12,20 +12,23 @@ const success = ref(false);
 const errors = ref(null);
 const isEditing = ref(false);
 const currentSessionId = ref(null);
+const formRef = ref(null); // Référence au formulaire
 
 // Charger les films, salles et séances
 const fetchData = async () => {
   try {
-    const moviesResponse = await axios.get("http://127.0.0.1:8000/api/movies/");
+    const [moviesResponse, roomsResponse, sessionsResponse] = await Promise.all([
+      axios.get("http://127.0.0.1:8000/api/movies/"),
+      axios.get("http://127.0.0.1:8000/api/room/"),
+      axios.get("http://127.0.0.1:8000/api/sessions/"),
+    ]);
+
     movies.value = moviesResponse.data;
-
-    const roomsResponse = await axios.get("http://127.0.0.1:8000/api/room/");
     rooms.value = roomsResponse.data;
-
-    const sessionsResponse = await axios.get("http://127.0.0.1:8000/api/sessions/");
     sessions.value = sessionsResponse.data;
   } catch (error) {
-    console.error("Erreur lors du chargement des films, salles ou séances:", error);
+    errors.value = "Erreur lors du chargement des données.";
+    console.error(error);
   }
 };
 
@@ -34,59 +37,76 @@ onMounted(fetchData);
 // Mettre automatiquement à jour `roomId` lorsque `movieId` change
 watch(movieId, (newMovieId) => {
   const selectedMovie = movies.value.find(movie => movie.id === newMovieId);
-  if (selectedMovie && selectedMovie.roomId) {
-    roomId.value = selectedMovie.roomId; // Affecter la salle liée au film
-  } else {
-    roomId.value = ""; // Réinitialiser si aucun lien
-  }
+  roomId.value = selectedMovie?.roomId || "";
 });
+
+// Formater la date pour éviter le "Z" (UTC)
+const formatDate = (isoString) => {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  return date.toLocaleString("fr-FR", {
+    dateStyle: "long",
+    timeStyle: "short"
+  });
+};
 
 // Créer ou Modifier une séance
 const submit = async () => {
   try {
+    const payload = {
+      movie_id: movieId.value,
+      room_id: roomId.value,
+      date_hour: dateHour.value,
+    };
+
     if (isEditing.value) {
-      // Mettre à jour une séance existante
-      await axios.put(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}/`, {
-        movie_id: movieId.value,
-        room_id: roomId.value,
-        date_hour: dateHour.value,
-      });
+      await axios.put(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}/`, payload);
     } else {
-      // Créer une nouvelle séance
-      await axios.post("http://127.0.0.1:8000/api/sessions/", {
-        movie_id: movieId.value,
-        room_id: roomId.value,
-        date_hour: dateHour.value,
-      });
+      await axios.post("http://127.0.0.1:8000/api/sessions/", payload);
     }
 
     success.value = true;
     errors.value = null;
-    isEditing.value = false;
-    currentSessionId.value = null;
-    fetchData(); // Recharger les séances après modification/ajout
+    resetForm();
+    fetchData();
   } catch (error) {
     errors.value = error.response?.data || "Une erreur est survenue.";
     success.value = false;
   }
 };
 
-// Préparer la modification d'une séance
+// Réinitialiser le formulaire
+const resetForm = () => {
+  movieId.value = "";
+  roomId.value = "";
+  dateHour.value = "";
+  isEditing.value = false;
+  currentSessionId.value = null;
+};
+
+// Modifier une séance et faire défiler la page vers le formulaire
 const editSession = (session) => {
   movieId.value = session.movie.id;
   roomId.value = session.room.id;
   dateHour.value = session.date_hour;
   currentSessionId.value = session.id;
   isEditing.value = true;
+
+  // Remonter au formulaire
+  nextTick(() => {
+    formRef.value.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 };
 
 // Supprimer une séance
 const deleteSession = async (sessionId) => {
+  if (!confirm("Voulez-vous vraiment supprimer cette séance ?")) return;
+
   try {
     await axios.delete(`http://127.0.0.1:8000/api/sessions/${sessionId}/`);
-    fetchData(); // Rafraîchir la liste après suppression
+    fetchData();
   } catch (error) {
-    console.error("Erreur lors de la suppression :", error);
+    errors.value = "Erreur lors de la suppression.";
   }
 };
 </script>
@@ -95,42 +115,57 @@ const deleteSession = async (sessionId) => {
   <div class="container">
     <h1>Gestion des Séances</h1>
     
-    <!-- Formulaire pour ajouter/modifier une séance -->
-    <form @submit.prevent="submit">
+    <form ref="formRef" @submit.prevent="submit">
       <label>Film :</label>
-      <select v-model="movieId">
+      <select v-model="movieId" required>
+        <option value="" disabled>Sélectionnez un film</option>
         <option v-for="movie in movies" :key="movie.id" :value="movie.id">
           {{ movie.title }}
         </option>
       </select>
 
       <label>Salle :</label>
-      <select v-model="roomId">
+      <select v-model="roomId" required>
+        <option value="" disabled>Sélectionnez une salle</option>
         <option v-for="room in rooms" :key="room.id" :value="room.id">
           {{ room.name }} (Capacité: {{ room.capacity }})
         </option>
       </select>
 
       <label>Date et Heure :</label>
-      <input v-model="dateHour" type="datetime-local" />
+      <input v-model="dateHour" type="datetime-local" required />
 
-      <button type="submit">{{ isEditing ? "Modifier la séance" : "Créer la séance" }}</button>
+      <button :class="isEditing ? 'edit-btn' : 'create-btn'" type="submit">
+        {{ isEditing ? "Modifier" : "Créer" }}
+      </button>
     </form>
 
-    <p v-if="success" style="color: green;">Séance ajoutée/modifiée avec succès !</p>
-    <p v-if="errors" style="color: red;">Erreur : {{ errors }}</p>
+    <p v-if="success" class="success">Séance enregistrée avec succès !</p>
+    <p v-if="errors" class="error">{{ errors }}</p>
 
-    <!-- Liste des séances avec boutons Modifier/Supprimer -->
     <h2>Liste des Séances</h2>
     <ul>
       <li v-for="session in sessions" :key="session.id">
-        {{ session.movie.title }} - {{ session.room.name }} - {{ session.date_hour }}
-        <button @click="editSession(session)">Modifier</button>
-        <button @click="deleteSession(session.id)">Supprimer</button>
+        <div class="session-item">
+          <img 
+            v-if="session.movie.picture_url" 
+            :src="session.movie.picture_url" 
+            alt="Affiche du film" 
+            class="movie-thumb"
+          />
+          <div class="session-details">
+            <strong>{{ session.movie.title }}</strong> - 
+            {{ session.room.name }} - 
+            {{ formatDate(session.date_hour) }}
+          </div>
+        </div>
+        <div class="session-actions">
+          <button class="edit-btn" @click="editSession(session)">Modifier</button>
+          <button class="delete-btn" @click="deleteSession(session.id)">Supprimer</button>
+        </div>
       </li>
     </ul>
   </div>
-
 </template>
 
 <style scoped>
@@ -163,20 +198,65 @@ li {
   background: #222;
   padding: 10px;
   margin: 5px 0;
+  border-radius: 8px;
+}
+
+.session-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 10px;
+}
+
+.movie-thumb {
+  width: 50px;
+  height: 75px;
+  object-fit: cover;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.session-details {
+  flex: 1;
+}
+
+.session-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 button {
-  background-color: #007bff;
   color: white;
   border: none;
   padding: 5px 10px;
   cursor: pointer;
+  border-radius: 5px;
 }
 
 button:hover {
   opacity: 0.8;
+}
+
+/* Bouton Créer en Vert */
+.create-btn {
+  background-color: #28a745; /* Vert */
+}
+
+/* Bouton Modifier en Orange */
+.edit-btn {
+  background-color: #ff9800; /* Orange */
+}
+
+/* Bouton Supprimer en Rouge */
+.delete-btn {
+  background-color: #d32f2f; /* Rouge */
+}
+
+.success {
+  color: green;
+}
+
+.error {
+  color: red;
 }
 </style>
