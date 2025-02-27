@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import AddMovie from '@/views/AddMovie.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,6 +18,16 @@ const router = createRouter({
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
+    {
+      path: '/sessions',
+      name: 'sessions',
+      component: () => import('../views/SessionsView.vue'), // Nouvelle page
+    },
+    // {
+    //   path: '/add-movie',
+    //   name: 'add-movie',
+    //   component: () => import('../views/AddMovie.vue'),
+    // },
   ],
 })
 

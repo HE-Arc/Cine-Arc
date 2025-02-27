@@ -29,6 +29,12 @@ class Session(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name="sessions")
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="sessions")
     date_hour = models.DateTimeField()
+    
+
+    def save(self,*args, **kwargs):
+        if not self.pk:
+            self.available_seats = self.room.capacity
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.movie.title} - {self.room.name} ({self.date_hour})"
