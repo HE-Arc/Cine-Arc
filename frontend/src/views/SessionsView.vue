@@ -89,17 +89,35 @@ const resetForm = () => {
 
 // Modifier une séance et faire défiler la page vers le formulaire
 const editSession = (session) => {
-  movieId.value = session.movie.id;
-  roomId.value = session.room.id;
-  dateHour.value = session.date_hour;
-  currentSessionId.value = session.id;
   isEditing.value = true;
+  currentSessionId.value = session.id;
+
+  // Pré-remplir les champs du formulaire
+  movieId.value = session.movie.id;
+  
+  // Met à jour la salle et force Vue à rafraîchir l'affichage
+  roomId.value = session.room.id;
+  nextTick(() => {
+    roomId.value = session.room.id; // Assure que Vue le met bien à jour
+  });
+
+  // Corrige la date pour `datetime-local`
+  dateHour.value = new Date(session.date_hour).toISOString().slice(0, 16);
+
+  //Fait défiler vers le formulaire
+  nextTick(() => {
+    formRef.value.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+};
+
+
+
 
   // Remonter au formulaire
   nextTick(() => {
     formRef.value.scrollIntoView({ behavior: "smooth", block: "start" });
   });
-};
+
 
 // Supprimer une séance
 const deleteSession = async (sessionId) => {
@@ -113,18 +131,11 @@ const deleteSession = async (sessionId) => {
   }
 };
 
-//Rediriger vers la page Ajouter un film
-const goToAddMovie = () => {
-  router.push("/add-movie");
-};
 </script>
 
 <template>
   <div class="container">
     <h1>Gestion des Séances</h1>
-
-    <!-- ✅ Bouton pour Ajouter un Film -->
-    <button class="add-movie-btn" @click="goToAddMovie">🎬 Ajouter un Film</button>
 
     <form ref="formRef" @submit.prevent="submit">
       <label>Film :</label>
