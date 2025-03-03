@@ -35,6 +35,29 @@ const fetchData = async () => {
   }
 };
 
+//Pour quand l'api sera mise en place
+// const fetchData = async () => {
+//   try {
+//     const API_KEY = "CLE DE L'API DE TMBD ICI"; qui est dans un fichier .env 
+//     const moviesResponse = await axios.get(
+//       `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=fr-FR`
+//     );
+
+//     movies.value = moviesResponse.data.results; 
+
+//     const [roomsResponse, sessionsResponse] = await Promise.all([
+//       axios.get("http://127.0.0.1:8000/api/room/"),
+//       axios.get("http://127.0.0.1:8000/api/sessions/"),
+//     ]);
+
+//     rooms.value = roomsResponse.data;
+//     sessions.value = sessionsResponse.data;
+//   } catch (error) {
+//     errors.value = "Erreur lors du chargement des données.";
+//     console.error(error);
+//   }
+// };
+
 onMounted(fetchData);
 
 // Mettre automatiquement à jour `roomId` lorsque `movieId` change
@@ -135,7 +158,7 @@ const deleteSession = async (sessionId) => {
 
 <template>
   <div class="container">
-    <h1>Gestion des Séances</h1>
+    <h1>Séances</h1>
 
     <form ref="formRef" @submit.prevent="submit">
       <label>Film :</label>
