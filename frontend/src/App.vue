@@ -1,9 +1,9 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import NavBar from "./components/NavBar.vue";
 </script>
 
 <template>
+
   <RouterView />
 </template>
 
@@ -70,3 +70,14 @@ nav a:first-of-type {
   }
 }
 </style>
+
+  <q-layout view="hHh lpR fFf">
+    <NavBar/>
+    <q-page-container>
+      <router-view />
+    </q-page-container>
+  </q-layout>
+</template>
+
+<style scoped></style>
+
