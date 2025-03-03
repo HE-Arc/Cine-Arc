@@ -26,6 +26,7 @@ const fetchData = async () => {
       axios.get("http://127.0.0.1:8000/api/sessions/"),
     ]);
 
+    console.log("Sessions fetched:", sessionsResponse.data); // 🔍 Vérifie ce qui est récupéré
     movies.value = moviesResponse.data;
     rooms.value = roomsResponse.data;
     sessions.value = sessionsResponse.data;
@@ -254,6 +255,7 @@ li {
 }
 
 .session-details {
+  color: white !important;
   flex: 1;
 }
 

@@ -3,7 +3,7 @@ import HomeView from '@/views/HomeView.vue';
 import MovieView from '@/views/MovieView.vue';
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes : [
     {
       path: '/',
@@ -27,6 +27,11 @@ const router = createRouter({
       path: '/movies/:id',
       name: 'movieDetails',
       component: MovieView, props: true
+    },
+    {
+      path: '/sessions',
+      name: 'sessions',
+      component: () => import('../views/SessionsView.vue'), 
     },
   ]
 });
