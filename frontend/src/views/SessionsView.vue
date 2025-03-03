@@ -133,14 +133,10 @@ const editSession = (session) => {
   });
 };
 
-
-
-
   // Remonter au formulaire
   nextTick(() => {
     formRef.value.scrollIntoView({ behavior: "smooth", block: "start" });
   });
-
 
 // Supprimer une séance
 const deleteSession = async (sessionId) => {
@@ -268,7 +264,7 @@ li {
 }
 
 button {
-  width: 100%; /* ✅ Tous les boutons prennent toute la largeur */
+  width: 100%; /*Tous les boutons prennent toute la largeur */
   padding: 10px;
   border: none;
   border-radius: 5px;
@@ -277,14 +273,14 @@ button {
   cursor: pointer;
   color: white;
   text-align: center;
-  display: block; /* ✅ Empêche les petits écarts de taille */
+  display: block; /* Empêche les petits écarts de taille */
 }
 
 button:hover {
   opacity: 0.8;
 }
 
-/* ✅ Bouton "Créer" en vert */
+/* Bouton "Créer" en vert */
 .create-btn {
   background-color: #28a745;
 }
@@ -293,7 +289,7 @@ button:hover {
   background-color: #218838;
 }
 
-/* ✅ Bouton "Ajouter un Film" en bleu */
+/* Bouton "Ajouter un Film" en bleu */
 .add-movie-btn {
   background-color: #007bff;
   margin-top: 10px;
@@ -303,7 +299,7 @@ button:hover {
   background-color: #0056b3;
 }
 
-/* ✅ Bouton Modifier en Orange */
+/* Bouton Modifier en Orange */
 .edit-btn {
   background-color: #ff9800;
 }
@@ -312,7 +308,7 @@ button:hover {
   background-color: #e68900;
 }
 
-/* ✅ Bouton Supprimer en Rouge */
+/* Bouton Supprimer en Rouge */
 .delete-btn {
   background-color: #d32f2f;
 }
