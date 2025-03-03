@@ -15,7 +15,7 @@
 
             <p><strong>Duration :</strong> {{ movie.duration }} min</p>
             <p><strong>Type :</strong> {{ movie.type }}</p>
-            <p><strong>Rating :</strong>  {{ movie.rating }} / 5 ⭐</p>
+            <p><strong>Rating :</strong>  {{ movie.rating }} / 10 ⭐</p>
           </div>
         </div>
       </div>
