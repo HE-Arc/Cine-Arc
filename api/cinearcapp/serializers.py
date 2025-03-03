@@ -34,10 +34,18 @@ class RoomSerializer(serializers.ModelSerializer):
 class SessionSerializer(serializers.ModelSerializer):
     movie = MovieSerializer(read_only=True)
     room = RoomSerializer(read_only=True)
+    
+    # Champs d'écriture pour les ID
+    movie_id = serializers.PrimaryKeyRelatedField(
+        queryset=Movie.objects.all(), source='movie', write_only=True)
+    
+    room_id = serializers.PrimaryKeyRelatedField(
+        queryset=Room.objects.all(), source='room', write_only=True)
 
     class Meta:
         model = Session
-        fields = ["id", "movie", "room", "date_hour"]
+        fields = ["id", "movie", "room", "movie_id", "room_id", "date_hour"]
+
 
 
 # Serializer Basket

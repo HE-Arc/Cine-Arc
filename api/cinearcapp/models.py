@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 # Modèle des Films
 class Movie(models.Model):
     title = models.CharField(max_length=100)
-    synopsis = models.CharField(max_length=100)
+    synopsis = models.CharField(max_length=500)
     duration = models.IntegerField()
     type = models.CharField(max_length=50)
     release_date = models.DateField()
@@ -29,6 +29,12 @@ class Session(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name="sessions")
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="sessions")
     date_hour = models.DateTimeField()
+    
+
+    def save(self,*args, **kwargs):
+        if not self.pk:
+            self.available_seats = self.room.capacity
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.movie.title} - {self.room.name} ({self.date_hour})"
