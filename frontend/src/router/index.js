@@ -11,19 +11,6 @@ const router = createRouter({
       component: HomeView
     },
     {
-
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue'),
-    },
-    {
-      path: '/sessions',
-      name: 'sessions',
-      component: () => import('../views/SessionsView.vue'), 
-    },
-  ],
-})
-
       path: '/movies/:id',
       name: 'movieDetails',
       component: MovieView, props: true
@@ -35,6 +22,5 @@ const router = createRouter({
     },
   ]
 });
-
 
 export default router;
