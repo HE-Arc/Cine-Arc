@@ -126,7 +126,9 @@ const editSession = (session) => {
   });
 
   // Corrige la date pour `datetime-local`
-  dateHour.value = new Date(session.date_hour).toISOString().slice(0, 16);
+  const sessionDate = new Date(session.date_hour);
+  const localDate = new Date(sessionDate.getTime() - sessionDate.getTimezoneOffset() * 60000);
+  dateHour.value = localDate.toISOString().slice(0, 16);
 
   //Fait défiler vers le formulaire
   nextTick(() => {

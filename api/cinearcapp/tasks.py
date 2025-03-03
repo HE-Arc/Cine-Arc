@@ -51,7 +51,7 @@ def fetch_and_store_movies():
 
         for movie in movies:
             title = movie.get("title", "Titre Inconnu")
-            synopsis = movie.get("overview", "")[:100]
+            synopsis = movie.get("overview", "")[:500]
             duration = movie.get("runtime") or 90
             genre_ids = movie.get("genre_ids", [])
 

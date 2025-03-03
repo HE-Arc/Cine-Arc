@@ -63,7 +63,7 @@ export default {
 
 <style scoped>
 .movie-img {
-  height: 250px;
+  height: 100%;
   object-fit: cover;
   width: 100%;
 }

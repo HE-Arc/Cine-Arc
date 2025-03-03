@@ -38,7 +38,7 @@
             <div v-if="filteredSessions.length > 0">
               <ul class="list-group">
                 <li v-for="session in filteredSessions" :key="session.id" class="list-group-item">
-                  <strong>{{ session.time }}</strong> - {{ session.location }}
+                  <strong>{{ session.formattedDate }}</strong> - {{ session.room.name }}
                 </li>
               </ul>
             </div>
@@ -78,7 +78,36 @@ export default {
   computed: {
     // Filtrer les séances pour n'afficher que celles correspondant au film actuel
     filteredSessions() {
-      return this.sessions.filter(session => session.movie_id === this.movie.id);
+      if (!this.movie) return [];
+
+      return this.sessions
+        .filter(session => session.movie.id === this.movie.id)
+        .map(session => {
+          return {
+            ...session,
+            formattedDate: this.formatDate(session.date_hour)
+          };
+        });
+    }
+  },
+  methods: {
+    formatDate(isoString) {
+      const date = new Date(isoString);
+      
+      // Obtenir la date au format "03 mars 2025"
+      const formattedDate = date.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      });
+
+      // Obtenir l'heure au format "19:57"
+      const formattedTime = date.toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      return `Le ${formattedDate} à ${formattedTime}`;
     }
   }
 };
