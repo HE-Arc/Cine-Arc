@@ -82,11 +82,11 @@ DATABASES = {
     },
     "server": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "cine_arc"),  # Nom de la DB
-        "USER": os.getenv("POSTGRES_USER", "cine_arc"),  # Utilisateur
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "Ky9eh46KuJftmgygzrnoozehk"),  # Mot de passe
-        "HOST": os.getenv("POSTGRES_HOST", "postgres-service"),  # Service PostgreSQL (Docker/K8s)
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),  # Port PostgreSQL
+        "NAME": os.getenv("POSTGRES_DB"),  # Nom de la DB
+        "USER": os.getenv("POSTGRES_USER"),  # Utilisateur
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),  # Mot de passe
+        "HOST": os.getenv("POSTGRES_HOST"),  # Service PostgreSQL (Docker/K8s)
+        "PORT": os.getenv("POSTGRES_PORT"),  # Port PostgreSQL
     }
 }
 
