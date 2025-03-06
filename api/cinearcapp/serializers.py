@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from .models import CustomUser
 from .models import Movie, Session, Basket, Room
 
 User = get_user_model()  # use default user model
@@ -9,11 +10,11 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
     class Meta:
-        model = User
-        fields = ["id", "first_name", "last_name", "email", "password", "is_superuser"]
+        model = CustomUser
+        fields = ["id", "email", "first_name", "last_name", "password", "is_superuser"]
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)  # Hash password
+        user = CustomUser.objects.create_user(**validated_data)
         return user
 
 # Serializer Movie

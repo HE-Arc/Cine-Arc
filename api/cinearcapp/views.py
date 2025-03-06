@@ -1,10 +1,16 @@
 from rest_framework import viewsets, permissions
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from .models import Movie, Room, Session, Basket
 from .serializers import UserSerializer, MovieSerializer, RoomSerializer, SessionSerializer, BasketSerializer
 
 # Get the default User model
 User = get_user_model()
+
 
 # User ViewSet
 class UserViewSet(viewsets.ModelViewSet):
@@ -23,6 +29,29 @@ class UserViewSet(viewsets.ModelViewSet):
         user = serializer.save()
         user.set_password(user.password)  # Hash the password
         user.save()
+        
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def login_view(request):
+    """
+    Authentifie un utilisateur et renvoie un token JWT.
+    """
+    username = request.data.get("username")
+    password = request.data.get("password")
+    
+    user = authenticate(username=username, password=password)
+
+    if user is not None:
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "username": user.username
+        })
+    else:
+        return Response({"error": "Identifiants incorrects"}, status=400)
+
 
 # Movie ViewSet
 class MovieViewSet(viewsets.ModelViewSet):

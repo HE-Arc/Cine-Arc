@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,6 +22,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-w)pb!730umsd+qq2)!!=_^&q31z10i2)2a(dnwyn30jn!b6yp7'
+
+# Update the AUTH_USER_MODEL setting to point to the CustomUser model
+AUTH_USER_MODEL = "cinearcapp.CustomUser"
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -41,7 +46,19 @@ INSTALLED_APPS = [
     'corsheaders',
     'celery',
     'django_celery_beat',
+    "rest_framework_simplejwt",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
