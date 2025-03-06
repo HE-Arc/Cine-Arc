@@ -1,9 +1,9 @@
 <script setup>
 import axios from "axios";
 import { ref, onMounted, watch, nextTick } from "vue";
-import { useRouter } from "vue-router"; // Importation du router
 
-const router = useRouter(); // Initialisation du router
+// Remplacer par l'URL de l'API depuis les variables d'environnement
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const movies = ref([]);
 const rooms = ref([]);
@@ -21,9 +21,9 @@ const formRef = ref(null); // Référence au formulaire
 const fetchData = async () => {
   try {
     const [moviesResponse, roomsResponse, sessionsResponse] = await Promise.all([
-      axios.get("http://127.0.0.1:8000/api/movies/"),
-      axios.get("http://127.0.0.1:8000/api/room/"),
-      axios.get("http://127.0.0.1:8000/api/sessions/"),
+      axios.get(`${API_BASE_URL}/movies/`),
+      axios.get(`${API_BASE_URL}/room/`),
+      axios.get(`${API_BASE_URL}/sessions/`),
     ]);
 
     console.log("Sessions fetched:", sessionsResponse.data); // 🔍 Vérifie ce qui est récupéré
@@ -31,33 +31,10 @@ const fetchData = async () => {
     rooms.value = roomsResponse.data;
     sessions.value = sessionsResponse.data;
   } catch (error) {
-    errors.value = "Erreur lors du chargement des données.";
     console.error(error);
+    errors.value = "Erreur lors du chargement des données.";
   }
 };
-
-//Pour quand l'api sera mise en place
-// const fetchData = async () => {
-//   try {
-//     const API_KEY = "CLE DE L'API DE TMBD ICI"; qui est dans un fichier .env 
-//     const moviesResponse = await axios.get(
-//       `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=fr-FR`
-//     );
-
-//     movies.value = moviesResponse.data.results; 
-
-//     const [roomsResponse, sessionsResponse] = await Promise.all([
-//       axios.get("http://127.0.0.1:8000/api/room/"),
-//       axios.get("http://127.0.0.1:8000/api/sessions/"),
-//     ]);
-
-//     rooms.value = roomsResponse.data;
-//     sessions.value = sessionsResponse.data;
-//   } catch (error) {
-//     errors.value = "Erreur lors du chargement des données.";
-//     console.error(error);
-//   }
-// };
 
 onMounted(fetchData);
 
@@ -87,9 +64,9 @@ const submit = async () => {
     };
 
     if (isEditing.value) {
-      await axios.put(`http://127.0.0.1:8000/api/sessions/${currentSessionId.value}/`, payload);
+      await axios.put(`${API_BASE_URL}/sessions/${currentSessionId.value}/`, payload); // Utilisation de API_BASE_URL
     } else {
-      await axios.post("http://127.0.0.1:8000/api/sessions/", payload);
+      await axios.post(`${API_BASE_URL}/sessions/`, payload); // Utilisation de API_BASE_URL
     }
 
     success.value = true;
@@ -118,7 +95,7 @@ const editSession = (session) => {
 
   // Pré-remplir les champs du formulaire
   movieId.value = session.movie.id;
-  
+
   // Met à jour la salle et force Vue à rafraîchir l'affichage
   roomId.value = session.room.id;
   nextTick(() => {
@@ -136,19 +113,14 @@ const editSession = (session) => {
   });
 };
 
-  // Remonter au formulaire
-  nextTick(() => {
-    formRef.value.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-
 // Supprimer une séance
 const deleteSession = async (sessionId) => {
   if (!confirm("Voulez-vous vraiment supprimer cette séance ?")) return;
 
   try {
-    await axios.delete(`http://127.0.0.1:8000/api/sessions/${sessionId}/`);
+    await axios.delete(`${API_BASE_URL}/sessions/${sessionId}/`); // Utilisation de API_BASE_URL
     fetchData();
-  } catch (error) {
+  } catch {
     errors.value = "Erreur lors de la suppression.";
   }
 };
@@ -191,15 +163,15 @@ const deleteSession = async (sessionId) => {
     <ul>
       <li v-for="session in sessions" :key="session.id">
         <div class="session-item">
-          <img 
-            v-if="session.movie.picture_url" 
-            :src="session.movie.picture_url" 
-            alt="Affiche du film" 
+          <img
+            v-if="session.movie.picture_url"
+            :src="session.movie.picture_url"
+            alt="Affiche du film"
             class="movie-thumb"
           />
           <div class="session-details">
-            <strong>{{ session.movie.title }}</strong> - 
-            {{ session.room.name }} - 
+            <strong>{{ session.movie.title }}</strong> -
+            {{ session.room.name }} -
             {{ formatDate(session.date_hour) }}
           </div>
         </div>

@@ -33,6 +33,8 @@
 <script>
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 export default {
   data() {
     return {
@@ -46,7 +48,8 @@ export default {
   methods: {
     async fetchMovies() {
       try {
-        const response = await axios.get("http://localhost:8000/api/movies/");
+        const response = await axios.get(`${API_BASE_URL}/movies/`);
+        console.log(response.data);
         this.movies = response.data;
       } catch (error) {
         console.error("Error fetching movies:", error);

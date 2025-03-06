@@ -64,12 +64,14 @@ export default {
   },
   async mounted() {
     try {
+      const API_URL = import.meta.env.VITE_API_URL; // Récupérer l'URL du backend depuis .env
+
       // Récupérer les détails du film
-      const movieResponse = await axios.get(`http://localhost:8000/api/movies/${this.$route.params.id}`);
+      const movieResponse = await axios.get(`${API_URL}/movies/${this.$route.params.id}`);
       this.movie = movieResponse.data;
 
       // Récupérer toutes les séances
-      const sessionsResponse = await axios.get("http://localhost:8000/api/sessions");
+      const sessionsResponse = await axios.get(`${API_URL}/sessions`);
       this.sessions = sessionsResponse.data;
     } catch (error) {
       console.error("Error fetching movie or session details:", error);
@@ -93,7 +95,7 @@ export default {
   methods: {
     formatDate(isoString) {
       const date = new Date(isoString);
-      
+
       // Obtenir la date au format "03 mars 2025"
       const formattedDate = date.toLocaleDateString("fr-FR", {
         day: "2-digit",
