@@ -46,19 +46,40 @@ class SessionSerializer(serializers.ModelSerializer):
         model = Session
         fields = ["id", "movie", "room", "movie_id", "room_id", "date_hour"]
 
-
-
 # Serializer Basket
 class BasketSerializer(serializers.ModelSerializer):
     session = SessionSerializer(read_only=True)
     user = UserSerializer(read_only=True)
 
+    # Champs d'écriture pour les ID
+    session_id = serializers.PrimaryKeyRelatedField(
+        queryset=Session.objects.all(), source='session', write_only=True)
+    
+    # Utilisation de 'user_id' pour l'ID de l'utilisateur
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), source='user', write_only=True)
+
     class Meta:
         model = Basket
-        fields = ["id", "session", "user", "quantity", "payed"]
+        fields = ["id", "session", "user", "quantity", "payed", "session_id", "user_id"]
 
     def validate_quantity(self, value):
         """Empêche une quantité négative ou nulle"""
         if value <= 0:
             raise serializers.ValidationError("La quantité doit être au moins 1.")
         return value
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
