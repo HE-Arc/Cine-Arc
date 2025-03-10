@@ -61,15 +61,6 @@ class BasketViewSet(viewsets.ModelViewSet):
     serializer_class = BasketSerializer
     permission_classes = [permissions.AllowAny]
 
-    def perform_create(self, serializer):
-        """
-        Assigne l'utilisateur "en dur" (ID 1) à chaque panier lors de sa création.
-        """
-        user_id = 1  # Utiliser l'utilisateur avec l'ID 1, ou obtenir l'utilisateur actuel via authentication
-        session = serializer.validated_data.get('session')
-
-        # Vous pouvez définir l'utilisateur en dur ici si vous ne faites pas de gestion d'authentification
-        serializer.save(user_id=user_id, session=session)
 
 
 
