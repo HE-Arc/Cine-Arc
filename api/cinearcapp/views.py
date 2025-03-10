@@ -1,4 +1,6 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, serializers
+from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth import get_user_model
 from .models import Movie, Room, Session, Basket
 from .serializers import UserSerializer, MovieSerializer, RoomSerializer, SessionSerializer, BasketSerializer
@@ -51,18 +53,23 @@ class SessionViewSet(viewsets.ModelViewSet):
     serializer_class = SessionSerializer
     permission_classes = [permissions.AllowAny]
 
-# Basket ViewSet
 class BasketViewSet(viewsets.ModelViewSet):
     """
     Handles CRUD operations for baskets.
-    Only authenticated users can access and create a basket.
     """
     queryset = Basket.objects.all()
     serializer_class = BasketSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Only authenticated users can access
+    permission_classes = [permissions.AllowAny]
 
     def perform_create(self, serializer):
         """
-        Automatically assigns the logged-in user to the basket.
+        Assigne l'utilisateur "en dur" (ID 1) à chaque panier lors de sa création.
         """
-        serializer.save(user=self.request.user)
+        user_id = 1  # Utiliser l'utilisateur avec l'ID 1, ou obtenir l'utilisateur actuel via authentication
+        session = serializer.validated_data.get('session')
+
+        # Vous pouvez définir l'utilisateur en dur ici si vous ne faites pas de gestion d'authentification
+        serializer.save(user_id=user_id, session=session)
+
+
+

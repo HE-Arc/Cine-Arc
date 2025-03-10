@@ -30,7 +30,6 @@ class Session(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="sessions")
     date_hour = models.DateTimeField()
     
-
     def save(self,*args, **kwargs):
         if not self.pk:
             self.available_seats = self.room.capacity
