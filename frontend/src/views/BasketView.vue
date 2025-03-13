@@ -8,7 +8,6 @@
           <div>
             <strong>{{ basket.session.movie.title }}</strong>
             <br> Séance : {{ formatDate(basket.session.date_hour) }} à {{ formatTime(basket.session.date_hour) }} - Salle {{ basket.session.room.name }}
-            <br> Prix total : {{ basket.quantity * 16 }}.- CHF
           </div>
           <div class="d-flex align-items-center">
             <input
@@ -31,7 +30,6 @@
         <button class="btn btn-success" @click="submitBasket">Valider le panier</button>
         <h4 class="mb-0">Total : {{ totalAmount }}.- CHF</h4>
       </div>
-
     </div>
     <div v-else>
       <p>Votre panier est vide.</p>
@@ -68,21 +66,31 @@ export default {
     },
     formatDate(dateString) {
       const date = new Date(dateString);
-      return date.toLocaleDateString("fr-FR"); // Affiche "10/03/2025"
+      return date.toLocaleDateString("fr-FR");
     },
     formatTime(dateString) {
       const date = new Date(dateString);
-      return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); // Affiche "14:30"
+      return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
     },
     async updateQuantity(basket) {
+      console.log('Basket ID:', basket.id);
+      console.log('New Quantity:', basket.quantity);
+
       const newQuantity = parseInt(basket.quantity, 10);
+
       if (isNaN(newQuantity) || newQuantity < 1 || newQuantity > basket.session.room.capacity) {
         basket.quantity = Math.max(1, Math.min(basket.quantity, basket.session.room.capacity));
+        alert(`La quantité doit être entre 1 et ${basket.session.room.capacity}.`);
         return;
       }
+
       try {
         const API_URL = import.meta.env.VITE_API_URL;
-        await axios.put(`${API_URL}/basket/${basket.id}/`, { quantity: newQuantity });
+        await axios.patch(`${API_URL}/basket/${basket.id}/`, {
+          quantity: newQuantity
+        });
+
+        basket.quantity = newQuantity;
       } catch (error) {
         console.error('Erreur lors de la mise à jour du panier:', error);
       }
@@ -97,14 +105,42 @@ export default {
       }
     },
     async submitBasket() {
+      if (this.baskets.length === 0) {
+        alert('Votre panier est vide.');
+        return;
+      }
+
       try {
         const API_URL = import.meta.env.VITE_API_URL;
-        const response = await axios.post(`${API_URL}/basket/submit/`);
-        console.log('Panier validé:', response.data);
+
+        for (const basket of this.baskets) {
+          const basketData = {
+            session: basket.session.id,
+            user: basket.user.id,
+            quantity: basket.quantity,
+          };
+
+          await axios.patch(`${API_URL}/basket/${basket.id}/`, basketData, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            }
+          });
+        }
+
+        alert('Panier mis à jour avec succès');
       } catch (error) {
-        console.error('Erreur lors de la soumission du panier:', error);
+        console.error('Erreur lors de la soumission du panier:', error.response ? error.response.data : error.message);
+        alert('Une erreur est survenue lors de la mise à jour du panier.');
       }
     }
   }
 };
 </script>
+
+<style scoped>
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+</style>
