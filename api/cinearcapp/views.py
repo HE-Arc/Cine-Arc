@@ -35,22 +35,23 @@ class UserViewSet(viewsets.ModelViewSet):
 @permission_classes([AllowAny])
 def login_view(request):
     """
-    Authentifie un utilisateur et renvoie un token JWT.
+    Authentifie un utilisateur avec son email et renvoie un token JWT.
     """
-    username = request.data.get("username")
+    email = request.data.get("email")  # Utiliser `email` au lieu de `username`
     password = request.data.get("password")
-    
-    user = authenticate(username=username, password=password)
 
-    if user is not None:
+    user = User.objects.filter(email=email).first()  # Rechercher l'utilisateur par email
+
+    if user and user.check_password(password):  # Vérifier le mot de passe
         refresh = RefreshToken.for_user(user)
         return Response({
             "refresh": str(refresh),
             "access": str(refresh.access_token),
-            "username": user.username
+            "email": user.email
         })
     else:
         return Response({"error": "Identifiants incorrects"}, status=400)
+
 
 
 # Movie ViewSet
