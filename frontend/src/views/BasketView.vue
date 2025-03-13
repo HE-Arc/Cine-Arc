@@ -128,7 +128,6 @@ export default {
           });
         }
 
-        this.baskets = [];
         alert('Panier mis à jour avec succès');
       } catch (error) {
         console.error('Erreur lors de la soumission du panier:', error.response ? error.response.data : error.message);

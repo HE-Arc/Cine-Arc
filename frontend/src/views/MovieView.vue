@@ -136,32 +136,48 @@ export default {
 
     // Ajouter un article au panier (création d'un objet Basket)
     async addToBasket(session) {
-      const ticketCount = session.quantity || 0;
+    const ticketCount = session.quantity || 0;
 
-      if (ticketCount === 0) {
-        alert('Veuillez sélectionner une quantité valide de billets.');
-        return;
-      }
+    if (ticketCount === 0) {
+      alert('Veuillez sélectionner une quantité valide de billets.');
+      return;
+    }
 
-      try {
-        const API_URL = import.meta.env.VITE_API_URL;
-        const basketData = {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL;
+      const userId = 1; // Utilisateur fictif pour l'exemple
+
+      // Récupérer le panier pour vérifier si la séance existe déjà
+      const basketResponse = await axios.get(`${API_URL}/basket/`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      const existingItem = basketResponse.data.find(item => item.session.id === session.id);
+
+      if (existingItem) {
+        // Mettre à jour la quantité avec PATCH
+        await axios.patch(`${API_URL}/basket/${existingItem.id}/`, {
+          quantity: existingItem.quantity + ticketCount
+        }, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        alert('Quantité mise à jour dans le panier');
+      } else {
+        // Ajouter un nouvel élément avec POST
+        await axios.post(`${API_URL}/basket/`, {
           session_id: session.id,
           quantity: ticketCount,
-          user_id: 1 // Utilisateur fictif pour l'exemple
-        };
-
-        await axios.post(`${API_URL}/basket/`, basketData, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+          user_id: userId
+        }, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         alert('Article ajouté au panier');
-      } catch (error) {
-        console.error('Erreur lors de l\'ajout au panier:', error);
-        alert('Une erreur est survenue.');
       }
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout au panier:', error);
+      alert('Une erreur est survenue.');
     }
+  }
   }
 };
 </script>
