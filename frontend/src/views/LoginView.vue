@@ -1,18 +1,39 @@
 <template>
-  <div class="login-container">
-    <h2>Connexion</h2>
-    <form @submit.prevent="login">
-      <div>
-        <label for="email">Email</label>
-        <input v-model="email" type="email" required />
+  <div class="login-page">
+    <div class="login-container">
+      <div class="card p-4 shadow-sm">
+        <h2 class="text-center mb-3">Connexion</h2>
+
+        <form @submit.prevent="login">
+          <!-- Champ Email -->
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input v-model="email" type="email" class="form-control" required placeholder="Entrez votre email" />
+          </div>
+
+          <!-- Champ Mot de passe -->
+          <div class="mb-3">
+            <label for="password" class="form-label">Mot de passe</label>
+            <input v-model="password" type="password" class="form-control" required placeholder="••••••••" />
+          </div>
+
+          <!-- Checkbox "Se souvenir de moi" -->
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" v-model="rememberMe" id="rememberMe" />
+            <label class="form-check-label" for="rememberMe">Se souvenir de moi</label>
+          </div>
+
+          <!-- Bouton Se connecter -->
+          <button type="submit" class="btn btn-primary w-100" :disabled="loading">
+            <span v-if="loading" class="spinner-border spinner-border-sm"></span>
+            Se connecter
+          </button>
+
+          <!-- Message d'erreur -->
+          <p v-if="errorMessage" class="text-danger mt-2 text-center">{{ errorMessage }}</p>
+        </form>
       </div>
-      <div>
-        <label for="password">Mot de passe</label>
-        <input v-model="password" type="password" required />
-      </div>
-      <button type="submit">Se connecter</button>
-      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-    </form>
+    </div>
   </div>
 </template>
 
@@ -22,53 +43,89 @@ import axios from "axios";
 export default {
   data() {
     return {
-      email: "",
+      email: localStorage.getItem("savedEmail") || "", // Récupération de l'email si "Se souvenir de moi" est coché
       password: "",
+      rememberMe: !!localStorage.getItem("savedEmail"), // Si un email est enregistré, cocher la case
       errorMessage: "",
+      loading: false,
     };
   },
   methods: {
     async login() {
+      this.loading = true;
+      this.errorMessage = "";
+
       try {
-        console.log("Tentative de connexion avec :", {
-          email: this.email,
-          password: this.password,
-        }); // 🔍 Vérifier les données envoyées
+        console.log("Tentative de connexion avec :", { email: this.email, password: this.password });
 
         const response = await axios.post("http://127.0.0.1:8000/api/login/", {
           email: this.email,
           password: this.password,
         }, {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         });
 
-        console.log("Réponse de l'API :", response.data); // 🔍 Voir la réponse
+        console.log("Réponse de l'API :", response.data);
 
+        // Sauvegarde des tokens
         localStorage.setItem("accessToken", response.data.access);
         localStorage.setItem("refreshToken", response.data.refresh);
 
-        this.$router.push("/");
+        // Sauvegarde de l'email si "Se souvenir de moi" est coché
+        if (this.rememberMe) {
+          localStorage.setItem("savedEmail", this.email);
+        } else {
+          localStorage.removeItem("savedEmail");
+        }
+
+        // Vérifier si l'utilisateur est admin
+        if (response.data.email === "admin@gmail.com") {
+          this.$router.push("/admin");
+        } else {
+          this.$router.push("/");
+        }
       } catch (error) {
         console.error("Erreur lors de la connexion :", error.response);
         this.errorMessage = error.response?.data?.error || "Identifiants incorrects";
+      } finally {
+        this.loading = false;
       }
     }
-    ,
-  },
+  }
 };
 </script>
 
 <style scoped>
-.login-container {
-  max-width: 300px;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+/* Empêcher le scrolling vertical et mettre un fond blanc */
+.login-page {
+  height: 80vh; /* Prend toute la hauteur de l'écran */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white; /* Fond blanc */
+  overflow: hidden; /* Empêche le scroll vertical */
 }
-.error {
-  color: red;
+
+/* Conteneur du formulaire */
+.login-container {
+  width: 80%;
+  max-width: 400px; /* Largeur du formulaire */
+  padding: 20px;
+}
+
+/* Style de la carte (formulaire) */
+.card {
+  border-radius: 10px;
+  width: 100%;
+}
+
+/* Style du bouton */
+.btn-primary {
+  font-weight: bold;
+}
+
+/* Animation de chargement */
+.spinner-border {
+  margin-right: 5px;
 }
 </style>
