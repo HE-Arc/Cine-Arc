@@ -13,6 +13,7 @@ celery = "*"
 django = "*"
 djangorestframework = "*"
 dotenv = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 

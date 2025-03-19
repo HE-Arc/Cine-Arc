@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 
 # Charger les variables d'environnement du fichier .env
 load_dotenv()
@@ -27,10 +28,23 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "cinearcapp",
     "rest_framework",
+    'rest_framework_simplejwt',
     "corsheaders",
     "celery",
     "django_celery_beat",
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
 
 # Middlewares
 MIDDLEWARE = [
