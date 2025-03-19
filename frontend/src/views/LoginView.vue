@@ -58,45 +58,34 @@ export default {
   },
   methods: {
     async login() {
-      this.loading = true;
-      this.errorMessage = "";
+  this.loading = true;
+  this.errorMessage = "";
 
-      try {
-        console.log("Tentative de connexion avec :", { email: this.email, password: this.password });
+  try {
+    console.log("Tentative de connexion avec :", {
+      email: this.email.trim(),
+      password: this.password.trim(), // Supprimer espaces invisibles
+    });
 
-        const response = await axios.post("http://127.0.0.1:8000/api/login/", {
-          email: this.email,
-          password: this.password,
-        }, {
-          headers: { "Content-Type": "application/json" },
-        });
+    const response = await axios.post("http://127.0.0.1:8000/api/login/", {
+      email: this.email.trim(),
+      password: this.password.trim(),
+    }, {
+      headers: { "Content-Type": "application/json" },
+    });
 
-        console.log("Réponse de l'API :", response.data);
+    console.log("Réponse de l'API :", response.data);
 
-        // Sauvegarde des tokens
-        localStorage.setItem("accessToken", response.data.access);
-        localStorage.setItem("refreshToken", response.data.refresh);
-
-        // Sauvegarde de l'email si "Se souvenir de moi" est coché
-        if (this.rememberMe) {
-          localStorage.setItem("savedEmail", this.email);
-        } else {
-          localStorage.removeItem("savedEmail");
-        }
-
-        // Vérifier si l'utilisateur est admin
-        if (response.data.email === "admin@gmail.com") {
-          this.$router.push("/admin");
-        } else {
-          this.$router.push("/");
-        }
-      } catch (error) {
-        console.error("Erreur lors de la connexion :", error.response);
-        this.errorMessage = error.response?.data?.error || "Identifiants incorrects";
-      } finally {
-        this.loading = false;
-      }
-    }
+    localStorage.setItem("accessToken", response.data.access);
+    localStorage.setItem("refreshToken", response.data.refresh);
+    this.$router.push("/");
+  } catch (error) {
+    console.error("Erreur lors de la connexion :", error.response);
+    this.errorMessage = error.response?.data?.error || "Identifiants incorrects";
+  } finally {
+    this.loading = false;
+  }
+},
   }
 };
 </script>

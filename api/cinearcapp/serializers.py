@@ -14,8 +14,12 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "email", "first_name", "last_name", "password", "is_superuser"]
 
     def create(self, validated_data):
-        user = CustomUser.objects.create_user(**validated_data)
+        password = validated_data.pop("password")  # Extraire le mot de passe
+        user = CustomUser(**validated_data)  # Créer l'utilisateur sans mot de passe
+        user.set_password(password)  # Hacher le mot de passe
+        user.save()  # Enregistrer l'utilisateur
         return user
+
 
 # Serializer Movie
 class MovieSerializer(serializers.ModelSerializer):

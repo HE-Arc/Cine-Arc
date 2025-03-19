@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from .models import Movie, Room, Session, Basket
+from .models import CustomUser
 from .serializers import UserSerializer, MovieSerializer, RoomSerializer, SessionSerializer, BasketSerializer
 
 # Get the default User model
@@ -18,7 +19,7 @@ class UserViewSet(viewsets.ModelViewSet):
     This view handles CRUD operations for users.
     When creating a new user, the password is automatically hashed.
     """
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]  # Modify this as needed (IsAuthenticated, etc.)
 
@@ -37,21 +38,21 @@ def login_view(request):
     """
     Authentifie un utilisateur avec son email et renvoie un token JWT.
     """
-    email = request.data.get("email")  # Utiliser `email` au lieu de `username`
+    email = request.data.get("email")
     password = request.data.get("password")
 
-    user = User.objects.filter(email=email).first()  # Rechercher l'utilisateur par email
+    # Utilisation de la fonction authenticate
+    user = authenticate(request, email=email, password=password)
 
-    if user and user.check_password(password):  # Vérifier le mot de passe
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-            "email": user.email
-        })
-    else:
-        return Response({"error": "Identifiants incorrects"}, status=400)
+    if not user:
+        return Response({"error": "Email ou mot de passe incorrect"}, status=400)
 
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+        "email": user.email
+    })
 
 
 # Movie ViewSet
