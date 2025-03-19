@@ -31,11 +31,17 @@
 
           <!-- Message d'erreur -->
           <p v-if="errorMessage" class="text-danger mt-2 text-center">{{ errorMessage }}</p>
+
+          <!-- Lien pour s'inscrire -->
+          <p class="mt-3 text-center">
+            Pas de compte ? <router-link to="/register">Créez-en un ici</router-link>
+          </p>
         </form>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import axios from "axios";
