@@ -10,9 +10,10 @@ django-celery-beat = "*"
 requests = "*"
 django-cors-headers = "*"
 celery = "*"
-django = "*"
 djangorestframework = "*"
 dotenv = "*"
+django = "*"
+stripe = "*"
 
 [dev-packages]
 
