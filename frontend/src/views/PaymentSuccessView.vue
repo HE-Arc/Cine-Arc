@@ -12,17 +12,21 @@ import axios from "axios";
 
 onMounted(async () => {
     try {
-        // ✅ Récupération de l'utilisateur connecté
-        const userResponse = await axios.get("http://localhost:8000/api/users/me/", {
+        // Récupération de l'utilisateur connecté
+        const userResponse = await axios.get("http://localhost:8000/api/auth/user/", {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
 
         console.log("Utilisateur connecté :", userResponse.data);
 
-        // ✅ Mise à jour du panier après le paiement
-        const response = await axios.get("http://localhost:8000/api/payment/success/", {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+        // Mise à jour du panier après le paiement
+        const response = await axios.post(
+            "http://localhost:8000/api/payment/success/", 
+            {},  // Ajouter un objet vide dans la requête `POST`
+            {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            }
+        );
 
         console.log("Mise à jour du panier :", response.data);
     } catch (error) {

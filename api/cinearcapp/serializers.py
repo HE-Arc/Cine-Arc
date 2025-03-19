@@ -49,13 +49,12 @@ class SessionSerializer(serializers.ModelSerializer):
 # Serializer Basket
 class BasketSerializer(serializers.ModelSerializer):
     session = SessionSerializer(read_only=True)
-    user = UserSerializer(read_only=True)
+    user = UserSerializer(read_only=True)  # Affichage utilisateur
 
-    # Champs d'écriture pour les ID
+    # Champs pour l'ID de l'utilisateur et de la session
     session_id = serializers.PrimaryKeyRelatedField(
         queryset=Session.objects.all(), source='session', write_only=True)
     
-    # Utilisation de 'user_id' pour l'ID de l'utilisateur
     user_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), source='user', write_only=True)
 
@@ -68,18 +67,3 @@ class BasketSerializer(serializers.ModelSerializer):
         if value <= 0:
             raise serializers.ValidationError("La quantité doit être au moins 1.")
         return value
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

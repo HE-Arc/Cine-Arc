@@ -51,39 +51,41 @@ class SessionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
 class BasketViewSet(viewsets.ModelViewSet):
-    queryset = Basket.objects.all()
+    """
+    Gère les opérations CRUD pour les paniers d'achat.
+    """
     serializer_class = BasketSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]  # Seuls les utilisateurs authentifiés ont accès
 
-def get_payment_details(request, user_id):
-    """
-    Récupère le total à payer pour l'utilisateur en fonction des tickets non payés.
-    """
-    user = get_object_or_404(User, id=user_id)
-    
-    # Filtrer les paniers non payés
-    cart_items = Basket.objects.filter(user_id=user.id, payed=False)
+    def get_queryset(self):
+        """
+        Récupère uniquement les paniers de l'utilisateur connecté qui ne sont pas payés.
+        """
+        return Basket.objects.filter(user=self.request.user, payed=False)
 
-    if not cart_items.exists():
-        return JsonResponse({"error": "Aucun billet à payer"}, status=400)
+    def perform_create(self, serializer):
+        """
+        Lorsqu'un utilisateur ajoute un article, on assigne automatiquement son panier à son compte.
+        """
+        serializer.save(user=self.request.user)
 
-    # Calcul du total
-    total_amount = sum(item.quantity * 16 for item in cart_items)  # Prix unique 16 CHF
-
-    return JsonResponse({"total": total_amount})
-
-def create_checkout_session(request, user_id):
+# =======================
+# PAYMENT
+# =======================
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def create_checkout_session(request):
     """
     Crée une session Stripe pour le paiement.
     """
-    user = get_object_or_404(User, id=user_id)
+    user = request.user  # Récupère l'utilisateur connecté grâce au token
 
-    cart_items = Basket.objects.filter(user_id=user.id, payed=False).select_related("session")
+    cart_items = Basket.objects.filter(user=user, payed=False).select_related("session")
 
     if not cart_items.exists():
-        return JsonResponse({"error": "Aucun billet à payer"}, status=400)
+        return Response({"error": "Aucun billet à payer"}, status=400)
 
-    total_amount = sum(item.quantity * 16 for item in cart_items)  # Prix en CHF
+    total_amount = sum(item.quantity * 16 for item in cart_items)  # Prix total en CHF
 
     try:
         session = stripe.checkout.Session.create(
@@ -99,32 +101,36 @@ def create_checkout_session(request, user_id):
                 }
             ],
             mode="payment",
-            success_url=f"http://localhost:5173/payment/success",
-            cancel_url=f"http://localhost:5173/payment/cancel",
+            success_url="http://localhost:5173/payment/success",
+            cancel_url="http://localhost:5173/payment/cancel",
         )
 
-        return JsonResponse({"checkout_url": session.url})
+        return Response({"checkout_url": session.url})
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        return Response({"error": str(e)}, status=500)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def payment_success(request):
     """
     Met à jour le panier de l'utilisateur en mettant 'payed' à True.
     """
+    user = request.user  # Récupération de l'utilisateur depuis le token
+    
     try:
-        user_id = request.user.id  # ✅ Récupérer user_id dynamiquement
-        baskets = Basket.objects.filter(user_id=user_id, payed=False)
-
+        # Récupérer tous les paniers non payés de l'utilisateur
+        baskets = Basket.objects.filter(user=user)
+        
         if not baskets.exists():
-            return JsonResponse({'message': 'Aucun panier à mettre à jour.'}, status=404)
+            return Response({'message': 'Aucun panier à mettre à jour.'}, status=404)
 
-        baskets.update(payed=True)  # ✅ Mettre à jour tous les paniers non payés
+        # Mettre à jour chaque panier
+        baskets.update(payed=True)
 
-        return JsonResponse({'message': 'Paiement confirmé, paniers mis à jour avec succès.'})
-
+        return Response({'message': 'Paiement confirmé, panier mis à jour avec succès.'}, status=200)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return Response({'error': str(e)}, status=500)
 
 def payment_cancel(request):
     """

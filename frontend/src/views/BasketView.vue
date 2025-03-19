@@ -27,7 +27,9 @@
 
       <!-- Montant total du panier -->
       <div class="mt-3 d-flex justify-content-between align-items-center">
-        <button class="btn btn-success" @click="submitBasket">Valider le panier</button>
+        <button class="btn btn-success" @click="processPayment" :disabled="loading">
+          {{ loading ? "Redirection vers Stripe..." : "Payer avec Stripe" }}
+        </button>
         <h4 class="mb-0">Total : {{ totalAmount }}.- CHF</h4>
       </div>
     </div>
@@ -44,6 +46,7 @@ export default {
   data() {
     return {
       baskets: [],
+      loading: false,
     };
   },
   computed: {
@@ -58,10 +61,38 @@ export default {
     async fetchBasket() {
       try {
         const API_URL = import.meta.env.VITE_API_URL;
-        const response = await axios.get(`${API_URL}/basket/`);
+        const token = localStorage.getItem("token"); // Récupération du token
+
+        const response = await axios.get(`${API_URL}/basket/`, {
+          headers: {
+            'Authorization': `Bearer ${token}` // Ajout du token
+          }
+        });
+
         this.baskets = response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération du panier:', error);
+      }
+    },
+    async processPayment() {
+      this.loading = true; // Affiche "Redirection vers Stripe..."
+
+      try {
+        const API_URL = import.meta.env.VITE_API_URL;
+        const token = localStorage.getItem("token");
+
+        // Appel API pour obtenir l'URL de paiement Stripe
+        const response = await axios.get(`${API_URL}/payment/checkout/`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // Redirection vers Stripe
+        window.location.href = response.data.checkout_url;
+      } catch (error) {
+        console.error("Erreur lors du paiement :", error);
+        alert("Une erreur est survenue. Veuillez réessayer.");
+      } finally {
+        this.loading = false;
       }
     },
     formatDate(dateString) {

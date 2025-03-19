@@ -13,8 +13,9 @@ celery = "*"
 djangorestframework = "*"
 dotenv = "*"
 django = "*"
-stripe = "*"
 djangorestframework-simplejwt = "*"
+stripe = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 

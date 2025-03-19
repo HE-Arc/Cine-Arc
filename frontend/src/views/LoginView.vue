@@ -43,6 +43,7 @@ export default {
             });
 
             localStorage.setItem("token", response.data.access);
+            axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.access}`;
             router.push("/");
         } catch (error) {
             errorMessage.value = "Email ou mot de passe incorrect.";
