@@ -1,7 +1,11 @@
-from rest_framework import viewsets, permissions, serializers
-from rest_framework.exceptions import ValidationError
-from rest_framework.exceptions import AuthenticationFailed
-from django.contrib.auth import get_user_model
+import re
+from rest_framework import viewsets, permissions, status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.contrib.auth import get_user_model, authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import Movie, Room, Session, Basket
 from .serializers import UserSerializer, MovieSerializer, RoomSerializer, SessionSerializer, BasketSerializer
 from django.http import JsonResponse
@@ -9,60 +13,44 @@ from django.shortcuts import get_object_or_404
 import stripe
 from django.conf import settings
 
-# Get the default User model
+# Récupérer le modèle User
 User = get_user_model()
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+# =======================
+# VIEWSETS
+# =======================
 
-# User ViewSet
 class UserViewSet(viewsets.ModelViewSet):
     """
-    This view handles CRUD operations for users.
-    When creating a new user, the password is automatically hashed.
+    CRUD pour les utilisateurs.
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]  # Modify this as needed (IsAuthenticated, etc.)
+    permission_classes = [permissions.AllowAny]  
 
     def perform_create(self, serializer):
-        """
-        Automatically hashes the password before saving the user.
-        """
+        """ Hash le mot de passe avant de sauvegarder l'utilisateur """
         user = serializer.save()
-        user.set_password(user.password)  # Hash the password
+        user.set_password(user.password)
         user.save()
 
-# Movie ViewSet
 class MovieViewSet(viewsets.ModelViewSet):
-    """
-    Handles CRUD operations for movies.
-    """
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
-    permission_classes = [permissions.AllowAny]  # Anyone can access
+    permission_classes = [permissions.AllowAny]
 
-# Room ViewSet
 class RoomViewSet(viewsets.ModelViewSet):
-    """
-    Handles CRUD operations for rooms.
-    """
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
     permission_classes = [permissions.AllowAny]
 
-# Session ViewSet
 class SessionViewSet(viewsets.ModelViewSet):
-    """
-    Handles CRUD operations for movie sessions.
-    """
     queryset = Session.objects.all()
     serializer_class = SessionSerializer
     permission_classes = [permissions.AllowAny]
 
 class BasketViewSet(viewsets.ModelViewSet):
-    """
-    Handles CRUD operations for baskets.
-    """
     queryset = Basket.objects.all()
     serializer_class = BasketSerializer
     permission_classes = [permissions.AllowAny]
@@ -138,13 +126,98 @@ def payment_success(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-def get_current_user(request):
-    """Renvoie les informations de l'utilisateur authentifié"""
-    user = request.user
-    return JsonResponse({"id": user.id, "username": user.username, "email": user.email})
-
 def payment_cancel(request):
     """
     Réponse lorsqu'un paiement est annulé par l'utilisateur.
     """
     return JsonResponse({'message': 'Paiement annulé, panier inchangé.'})
+  
+# =======================
+# AUTHENTIFICATION
+# =======================
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    """
+    Endpoint pour enregistrer un nouvel utilisateur avec validation du mot de passe.
+    """
+    username = request.data.get("username")
+    email = request.data.get("email")
+    password = request.data.get("password")
+
+    # Vérification des champs requis
+    if not username or not email or not password:
+        return Response({"error": "Tous les champs sont requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Vérification de l'existence de l'email
+    if User.objects.filter(email=email).exists():
+        return Response({"error": "Un utilisateur avec cet email existe déjà."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Vérification du mot de passe
+    password_error = is_valid_password(password)
+    if password_error:
+        return Response({"error": password_error}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Création de l'utilisateur
+    user = User.objects.create_user(username=username, email=email, password=password)
+
+    return Response({"message": "Compte créé avec succès. Vous pouvez maintenant vous connecter."}, status=status.HTTP_201_CREATED)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_user(request):
+    """
+    Endpoint pour authentifier un utilisateur et renvoyer un token JWT.
+    """
+    email = request.data.get("email")
+    password = request.data.get("password")
+
+    if not email or not password:
+        return Response({"error": "Email et mot de passe requis"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Vérifier si l'utilisateur existe
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({"error": "Utilisateur introuvable"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Authentifier avec son username car Django utilise username par défaut
+    user = authenticate(username=user.username, password=password)
+    if user is None:
+        return Response({"error": "Mot de passe incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # Générer un token JWT avec SimpleJWT
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        }
+    }, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_info(request):
+    """
+    Récupère les infos de l'utilisateur connecté.
+    """
+    user = request.user
+    return Response({'id': user.id, 'username': user.username, 'email': user.email})
+
+def is_valid_password(password):
+    """
+    Vérifie si le mot de passe a au moins :
+    - 8 caractères
+    - 1 caractère spécial parmi (!@#$%^&*())
+    """
+    if len(password) < 8:
+        return "Le mot de passe doit contenir au moins 8 caractères."
+
+    if not re.search(r"[!@#$%^&*()]", password):
+        return "Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*())."
+
+    return None  # Aucun problème

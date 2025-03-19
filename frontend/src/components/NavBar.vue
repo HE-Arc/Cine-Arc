@@ -11,14 +11,18 @@
           <a class="nav-link" href="/sessions">Add Sessions</a>
         </li>
 
-        <li class="nav-item" align="right">
-          <a class="nav-link" href="/login">Log In</a>
-        </li>
-
         <li class="nav-item">
           <a class="nav-link" href="/basket">
             <i class="bi bi-cart"></i> Basket
           </a>
+        </li>
+
+        <li class="nav-item" v-if="isAuthenticated">
+          <button class="nav-link btn btn-danger" @click="logout">Se Déconnecter</button>
+        </li>
+
+        <li class="nav-item" v-else>
+          <a class="nav-link" href="/login">Log In</a>
         </li>
       </ul>
     </div>
@@ -26,7 +30,23 @@
 </template>
 
 <script>
+import { computed } from "vue";
+import { useStore } from "vuex";
+import { useRouter } from "vue-router";
 export default {
   name: "NavBar",
+  setup() {
+    const store = useStore();
+    const router = useRouter();
+
+    const isAuthenticated = computed(() => !!store.state.token);
+
+    const logout = () => {
+      store.dispatch("logout");
+      router.push("/login"); // Rediriger vers la page de connexion après déconnexion
+    };
+
+    return { isAuthenticated, logout };
+  },
 };
 </script>
