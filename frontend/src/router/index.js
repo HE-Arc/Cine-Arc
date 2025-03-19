@@ -3,6 +3,10 @@ import HomeView from '@/views/HomeView.vue';
 import MovieView from '@/views/MovieView.vue';
 import SessionsView from '@/views/SessionsView.vue';
 import BasketView from '@/views/BasketView.vue';
+import PaymentView from '@/views/PaymentView.vue';
+import PaymentSuccessView from '@/views/PaymentSuccessView.vue';
+import PaymentCancelView from '@/views/PaymentCancelView.vue';
+import NotFoundView from '@/views/NotFoundView.vue';
 import LoginView from "@/views/LoginView.vue";
 import RegisterView from "@/views/RegisterView.vue";
 
@@ -41,6 +45,28 @@ const router = createRouter({
       name: "register",
       component: RegisterView
     },
+    {
+      path: '/payment/:user_id',
+      name: 'payment',
+      component: PaymentView,
+      props: true
+    },
+    {
+      path: '/payment/success',
+      name: 'paymentSuccess',
+      component: PaymentSuccessView,
+      props: true
+    },
+    {
+      path: '/payment/cancel',
+      name: 'paymentCancel',
+      component: PaymentCancelView,
+      props: true
+    },
+    { path: '/:pathMatch(.*)*', 
+      name: 'notFound', 
+      component: NotFoundView
+    }
   ]
 });
 
