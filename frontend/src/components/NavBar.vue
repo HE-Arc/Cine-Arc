@@ -7,22 +7,26 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link" href="/sessions">Add Sessions</a>
+        <!-- Afficher Add Sessions uniquement pour les administrateurs -->
+        <li class="nav-item" v-if="isAdmin">
+          <a class="nav-link" href="/sessions">Ajouter des séances</a>
         </li>
+      </ul>
 
+      <!-- Section pour aligner Basket et Log In/Logout à droite -->
+      <ul class="navbar-nav ms-auto">
         <li class="nav-item">
           <a class="nav-link" href="/basket">
-            <i class="bi bi-cart"></i> Basket
+            <i class="bi bi-cart"></i> Panier
           </a>
         </li>
 
         <li class="nav-item" v-if="isAuthenticated">
-          <button class="nav-link btn btn-danger" @click="logout">Se Déconnecter</button>
+          <button class="nav-link" @click="logout">Se Déconnecter</button>
         </li>
 
         <li class="nav-item" v-else>
-          <a class="nav-link" href="/login">Log In</a>
+          <a class="nav-link" href="/login">Se connecter</a>
         </li>
       </ul>
     </div>
@@ -30,23 +34,48 @@
 </template>
 
 <script>
-import { computed } from "vue";
-import { useStore } from "vuex";
-import { useRouter } from "vue-router";
+import axios from "axios";
+
 export default {
-  name: "NavBar",
-  setup() {
-    const store = useStore();
-    const router = useRouter();
-
-    const isAuthenticated = computed(() => !!store.state.token);
-
-    const logout = () => {
-      store.dispatch("logout");
-      router.push("/login"); // Rediriger vers la page de connexion après déconnexion
+  data() {
+    return {
+      isAuthenticated: false,
+      isAdmin: false,
     };
-
-    return { isAuthenticated, logout };
   },
+  async mounted() {
+    await this.fetchUser();
+  },
+  methods: {
+    async fetchUser() {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL;
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          this.isAuthenticated = false;
+          return;
+        }
+
+        const response = await axios.get(`${API_URL}/auth/user/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        this.isAuthenticated = true;
+        this.isAdmin = response.data.is_superuser;
+
+      } catch (error) {
+        console.error("Erreur lors de la récupération des infos utilisateur:", error);
+        this.isAuthenticated = false;
+        this.isAdmin = false;
+      }
+    },
+    logout() {
+      localStorage.removeItem("token");
+      this.isAuthenticated = false;
+      this.isAdmin = false;
+      window.location.href = "/login";
+    }
+  }
 };
 </script>

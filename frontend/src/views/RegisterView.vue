@@ -70,7 +70,8 @@ export default {
         }
 
         try {
-            const response = await axios.post("http://localhost:8000/api/auth/register/", {
+            const API_URL = import.meta.env.VITE_API_URL;
+            const response = await axios.post(`${API_URL}/auth/register/`, {
             username: username.value,
             email: email.value,
             password: password.value,

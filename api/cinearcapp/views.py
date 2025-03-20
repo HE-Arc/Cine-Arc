@@ -101,8 +101,8 @@ def create_checkout_session(request):
                 }
             ],
             mode="payment",
-            success_url="http://localhost:5173/payment/success",
-            cancel_url="http://localhost:5173/payment/cancel",
+            success_url = f"{settings.FRONTEND_URL}/payment/success",
+            cancel_url = f"{settings.FRONTEND_URL}/payment/cancel",
         )
 
         return Response({"checkout_url": session.url})
@@ -212,7 +212,7 @@ def get_user_info(request):
     Récupère les infos de l'utilisateur connecté.
     """
     user = request.user
-    return Response({'id': user.id, 'username': user.username, 'email': user.email})
+    return Response({'id': user.id, 'username': user.username, 'email': user.email, 'is_superuser': user.is_superuser})
 
 def is_valid_password(password):
     """

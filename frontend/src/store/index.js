@@ -23,7 +23,8 @@ export default createStore({
   actions: {
     async login({ commit }, credentials) {
       try {
-        const response = await axios.post("http://localhost:8000/api/auth/login/", credentials);
+        const API_URL = import.meta.env.VITE_API_URL;
+        const response = await axios.post(`${API_URL}/auth/login/`, credentials);
         commit("setToken", response.data.access);
         commit("setUser", { id: response.data.user_id, username: response.data.username });
         return true;
@@ -35,7 +36,8 @@ export default createStore({
     async fetchUser({ commit, state }) {
       if (state.token) {
         try {
-          const response = await axios.get("http://localhost:8000/api/auth/user/", {
+          const API_URL = import.meta.env.VITE_API_URL;
+          const response = await axios.get(`${API_URL}/auth/user/`, {
             headers: { Authorization: `Bearer ${state.token}` },
           });
           commit("setUser", response.data);

@@ -12,8 +12,9 @@ import axios from "axios";
 
 onMounted(async () => {
     try {
+        const API_URL = import.meta.env.VITE_API_URL;
         // Récupération de l'utilisateur connecté
-        const userResponse = await axios.get("http://localhost:8000/api/auth/user/", {
+        const userResponse = await axios.get(`${API_URL}/auth/user/`, {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
 
@@ -21,7 +22,7 @@ onMounted(async () => {
 
         // Mise à jour du panier après le paiement
         const response = await axios.post(
-            "http://localhost:8000/api/payment/success/", 
+            `${API_URL}/payment/success/`, 
             {},  // Ajouter un objet vide dans la requête `POST`
             {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

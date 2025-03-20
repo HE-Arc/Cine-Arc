@@ -6,6 +6,8 @@ from datetime import timedelta
 # Charger les variables d'environnement du fichier .env
 load_dotenv()
 
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
 # Chemin du projet
 BASE_DIR = Path(__file__).resolve().parent.parent
 

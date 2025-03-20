@@ -37,14 +37,17 @@ export default {
 
         const login = async () => {
         try {
-            const response = await axios.post("http://localhost:8000/api/auth/login/", {
+            const API_URL = import.meta.env.VITE_API_URL;
+            const response = await axios.post(`${API_URL}/auth/login/`, {
             email: email.value,
             password: password.value,
             });
 
             localStorage.setItem("token", response.data.access);
             axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.access}`;
-            router.push("/");
+            router.push("/").then(() => {
+                location.reload();
+            });
         } catch (error) {
             errorMessage.value = "Email ou mot de passe incorrect.";
             console.error(error);

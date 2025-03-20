@@ -1,13 +1,13 @@
 <template>
   <div class="container mt-5">
-    <h1 class="text-center mb-4">Movies</h1>
+    <h1 class="text-center mb-4">Films</h1>
 
     <!-- Affichage du spinner pendant le chargement -->
     <div v-if="loading" class="text-center">
       <div class="spinner-border" role="status">
-        <span class="sr-only">Loading...</span>
+        <span class="sr-only">Chargement...</span>
       </div>
-      <p>Loading movies...</p>
+      <p>Chargement des films...</p>
     </div>
 
     <!-- Affichage des films avec 4 colonnes fixes -->
@@ -21,7 +21,7 @@
 
     <!-- Si aucun film n'est disponible -->
     <div v-else class="text-center">
-      <p>No movies available.</p>
+      <p>Aucun film disponible.</p>
     </div>
   </div>
 </template>
@@ -62,7 +62,7 @@ export default {
 <style scoped>
 .movie-img {
   width: 100%;
-  object-fit: cover; /* 🔥 Assure un bon cadrage */
+  object-fit: cover;
 }
 
 .card {

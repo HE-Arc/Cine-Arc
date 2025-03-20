@@ -10,9 +10,9 @@
             </div>
             <h5 class="card-title">{{ movie.title }}</h5>
             <h6 class="card-subtitle mb-2 text-muted">{{ movie.release_date }}</h6>
-            <p><strong>Duration :</strong> {{ movie.duration }} min</p>
-            <p><strong>Type :</strong> {{ movie.type }}</p>
-            <p><strong>Rating :</strong>  {{ movie.rating }} / 10 ⭐</p>
+            <p><strong>Durée :</strong> {{ movie.duration }} min</p>
+            <p><strong>Genre :</strong> {{ movie.type }}</p>
+            <p><strong>Note :</strong>  {{ movie.rating }} / 10 ⭐</p>
           </div>
         </div>
       </div>
@@ -69,6 +69,7 @@ export default {
     return {
       movie: null,
       sessions: [],
+      userId: null,
     };
   },
   async mounted() {
@@ -136,48 +137,66 @@ export default {
 
     // Ajouter un article au panier (création d'un objet Basket)
     async addToBasket(session) {
-    const ticketCount = session.quantity || 0;
+      const ticketCount = session.quantity || 0;
 
-    if (ticketCount === 0) {
-      alert('Veuillez sélectionner une quantité valide de billets.');
-      return;
-    }
-
-    try {
-      const API_URL = import.meta.env.VITE_API_URL;
-      const userId = 1; // Utilisateur fictif pour l'exemple
-
-      // Récupérer le panier pour vérifier si la séance existe déjà
-      const basketResponse = await axios.get(`${API_URL}/basket/`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-
-      const existingItem = basketResponse.data.find(item => item.session.id === session.id);
-
-      if (existingItem) {
-        // Mettre à jour la quantité avec PATCH
-        await axios.patch(`${API_URL}/basket/${existingItem.id}/`, {
-          quantity: existingItem.quantity + ticketCount
-        }, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        alert('Quantité mise à jour dans le panier');
-      } else {
-        // Ajouter un nouvel élément avec POST
-        await axios.post(`${API_URL}/basket/`, {
-          session_id: session.id,
-          quantity: ticketCount,
-          user_id: userId
-        }, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        alert('Article ajouté au panier');
+      if (ticketCount === 0) {
+        alert("Veuillez sélectionner une quantité valide de billets.");
+        return;
       }
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout au panier:', error);
-      alert('Une erreur est survenue.');
+
+      // Vérifier si l'utilisateur est connecté
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Vous devez être connecté pour ajouter des séances à votre panier !");
+        return;
+      }
+
+      try {
+        const API_URL = import.meta.env.VITE_API_URL;
+
+        // Récupérer l'utilisateur connecté
+        const userResponse = await axios.get(`${API_URL}/auth/user/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!userResponse.data || !userResponse.data.id) {
+          alert("❌ Problème lors de la récupération des informations utilisateur.");
+          return;
+        }
+
+        this.userId = userResponse.data.id;
+
+        // Récupérer le panier pour voir si la séance y est déjà
+        const basketResponse = await axios.get(`${API_URL}/basket/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const existingItem = basketResponse.data.find(
+          (item) => item.session.id === session.id
+        );
+
+        if (existingItem) {
+          // ✅ Mettre à jour la quantité avec PATCH
+          await axios.patch(
+            `${API_URL}/basket/${existingItem.id}/`,
+            { quantity: existingItem.quantity + ticketCount },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          alert("✅ Quantité mise à jour dans le panier !");
+        } else {
+          // ✅ Ajouter une nouvelle séance au panier avec POST
+          await axios.post(
+            `${API_URL}/basket/`,
+            { session_id: session.id, quantity: ticketCount, user_id: this.userId },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          alert("✅ Article ajouté au panier !");
+        }
+      } catch (error) {
+        console.error("❌ Erreur lors de l'ajout au panier:", error);
+        alert("❌ Une erreur est survenue. Veuillez réessayer.");
+      }
     }
-  }
   }
 };
 </script>
