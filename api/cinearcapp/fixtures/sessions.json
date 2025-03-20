@@ -1,0 +1,20 @@
+﻿[
+{
+    "model": "cinearcapp.session",
+    "pk": 39,
+    "fields": {
+        "movie": 28,
+        "room": 1,
+        "date_hour": "2025-03-20T10:22:00Z"
+    }
+},
+{
+    "model": "cinearcapp.session",
+    "pk": 40,
+    "fields": {
+        "movie": 29,
+        "room": 2,
+        "date_hour": "2025-03-08T13:29:00Z"
+    }
+}
+]
