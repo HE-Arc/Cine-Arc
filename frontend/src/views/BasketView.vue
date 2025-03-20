@@ -41,6 +41,7 @@
 
 <script>
 import axios from "axios";
+import Swal from "sweetalert2";
 
 export default {
   data() {
@@ -72,6 +73,7 @@ export default {
         this.baskets = response.data;
       } catch (error) {
         console.error('Erreur lors de la récupération du panier:', error);
+        Swal.fire("Erreur", "Impossible de charger votre panier.", "error");
       }
     },
     async processPayment() {
@@ -90,7 +92,7 @@ export default {
         window.location.href = response.data.checkout_url;
       } catch (error) {
         console.error("Erreur lors du paiement :", error);
-        alert("Une erreur est survenue. Veuillez réessayer.");
+        Swal.fire("Erreur", "Une erreur est survenue. Veuillez réessayer.", "error");
       } finally {
         this.loading = false;
       }
@@ -111,7 +113,7 @@ export default {
 
       if (isNaN(newQuantity) || newQuantity < 1 || newQuantity > basket.session.room.capacity) {
         basket.quantity = Math.max(1, Math.min(basket.quantity, basket.session.room.capacity));
-        alert(`La quantité doit être entre 1 et ${basket.session.room.capacity}.`);
+        Swal.fire("Attention", `La quantité doit être entre 1 et ${basket.session.room.capacity}.`, "warning");
         return;
       }
 
@@ -122,18 +124,45 @@ export default {
         });
 
         basket.quantity = newQuantity;
+        Swal.fire("Succès", "Quantité mise à jour.", "success");
       } catch (error) {
         console.error('Erreur lors de la mise à jour du panier:', error);
+        Swal.fire("Erreur", "Impossible de mettre à jour la quantité.", "error");
       }
     },
     async removeBasketItem(basket) {
-      try {
-        const API_URL = import.meta.env.VITE_API_URL;
-        await axios.delete(`${API_URL}/basket/${basket.id}/`);
-        this.baskets = this.baskets.filter(item => item.id !== basket.id);
-      } catch (error) {
-        console.error('Erreur lors de la suppression du panier:', error);
-      }
+      Swal.fire({
+        title: "Êtes-vous sûr ?",
+        text: "Cette action supprimera cet article du panier.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Oui, supprimer !",
+        cancelButtonText: "Annuler",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const API_URL = import.meta.env.VITE_API_URL;
+            const token = localStorage.getItem("token"); // Récupération du token
+
+            if (!token) {
+              Swal.fire("Erreur", "Vous devez être connecté pour supprimer un article du panier.", "error");
+              return;
+            }
+
+            await axios.delete(`${API_URL}/basket/${basket.id}/`, {
+              headers: { Authorization: `Bearer ${token}` }, // Ajout du token ici
+            });
+
+            this.baskets = this.baskets.filter((item) => item.id !== basket.id);
+            Swal.fire("Supprimé !", "L'article a été retiré du panier.", "success");
+          } catch (error) {
+            console.error("Erreur lors de la suppression du panier:", error);
+            Swal.fire("Erreur", "Impossible de supprimer l'article.", "error");
+          }
+        }
+      });
     },
     async submitBasket() {
       if (this.baskets.length === 0) {

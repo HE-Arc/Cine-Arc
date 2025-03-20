@@ -41,6 +41,7 @@
 import axios from "axios";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
+import Swal from "sweetalert2";
 
 export default {
     setup() {
@@ -53,39 +54,61 @@ export default {
 
         // Vérifier si le mot de passe est valide
         const isValidPassword = (pwd) => {
-        return pwd.length >= 8 && /[!@#$%^&*]/.test(pwd);
+            return pwd.length >= 8 && /[!@#$%^&*]/.test(pwd);
         };
 
         const register = async () => {
-        errorMessage.value = "";
+            errorMessage.value = "";
 
-        if (password.value !== confirmPassword.value) {
-            errorMessage.value = "Les mots de passe ne correspondent pas.";
-            return;
-        }
-
-        if (!isValidPassword(password.value)) {
-            errorMessage.value = "Le mot de passe doit contenir au moins 8 caractères et un caractère spécial (!@#$%^&*).";
-            return;
-        }
-
-        try {
-            const API_URL = import.meta.env.VITE_API_URL;
-            const response = await axios.post(`${API_URL}/auth/register/`, {
-            username: username.value,
-            email: email.value,
-            password: password.value,
-            });
-
-            alert(response.data.message); // Confirme l'inscription réussie
-            router.push("/login"); // Rediriger vers la connexion
-        } catch (error) {
-            if (error.response && error.response.data && error.response.data.error) {
-            errorMessage.value = error.response.data.error;
-            } else {
-            errorMessage.value = "Erreur lors de l'inscription. Veuillez réessayer.";
+            if (password.value !== confirmPassword.value) {
+                errorMessage.value = "Les mots de passe ne correspondent pas.";
+                return;
             }
-        }
+
+            if (!isValidPassword(password.value)) {
+                Swal.fire({
+                title: "Mot de passe invalide",
+                text: "Le mot de passe doit contenir au moins 8 caractères et un caractère spécial (!@#$%^&*).",
+                icon: "error",
+                });
+                return;
+            }
+
+            try {
+                const API_URL = import.meta.env.VITE_API_URL;
+                const response = await axios.post(`${API_URL}/auth/register/`, {
+                username: username.value,
+                email: email.value,
+                password: password.value,
+                });
+
+                Swal.fire({
+                    title: "Inscription réussie !",
+                    text: response.data.message,
+                    icon: "success",
+                    timer: 2000,
+                    showConfirmButton: false,
+                    });
+
+                    // Rediriger après succès
+                    setTimeout(() => {
+                    router.push("/login");
+                    }, 2000);
+            } catch (error) {
+                if (error.response && error.response.data && error.response.data.error) {
+                    Swal.fire({
+                        title: "Erreur",
+                        text: error.response.data.error,
+                        icon: "error",
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Erreur serveur",
+                        text: "Une erreur est survenue. Veuillez réessayer.",
+                        icon: "error",
+                    });
+                }
+            }
         };
 
         return { username, email, password, confirmPassword, register, errorMessage };

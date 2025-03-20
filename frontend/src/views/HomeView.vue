@@ -28,6 +28,7 @@
 
 <script>
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -48,6 +49,11 @@ export default {
         this.movies = response.data;
       } catch (error) {
         console.error("Error fetching movies:", error);
+        Swal.fire({
+          title: "Erreur !",
+          text: "Impossible de récupérer les films. Veuillez réessayer plus tard.",
+          icon: "error",
+        });
       } finally {
         this.loading = false;
       }

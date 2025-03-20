@@ -63,6 +63,7 @@
 
 <script>
 import axios from "axios";
+import Swal from "sweetalert2";
 
 export default {
   data() {
@@ -140,14 +141,22 @@ export default {
       const ticketCount = session.quantity || 0;
 
       if (ticketCount === 0) {
-        alert("Veuillez sélectionner une quantité valide de billets.");
+        Swal.fire({
+          icon: "warning",
+          title: "Attention",
+          text: "Veuillez sélectionner une quantité valide de billets.",
+        });
         return;
       }
 
       // Vérifier si l'utilisateur est connecté
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Vous devez être connecté pour ajouter des séances à votre panier !");
+        Swal.fire({
+          icon: "error",
+          title: "Non connecté",
+          text: "Vous devez être connecté pour ajouter des séances à votre panier !",
+        });
         return;
       }
 
@@ -160,7 +169,11 @@ export default {
         });
 
         if (!userResponse.data || !userResponse.data.id) {
-          alert("❌ Problème lors de la récupération des informations utilisateur.");
+          Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: "Problème lors de la récupération des informations utilisateur.",
+          });
           return;
         }
 
@@ -176,25 +189,37 @@ export default {
         );
 
         if (existingItem) {
-          // ✅ Mettre à jour la quantité avec PATCH
+          // Mettre à jour la quantité avec PATCH
           await axios.patch(
             `${API_URL}/basket/${existingItem.id}/`,
             { quantity: existingItem.quantity + ticketCount },
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          alert("✅ Quantité mise à jour dans le panier !");
+          Swal.fire({
+            icon: "success",
+            title: "Ajout au panier",
+            text: "Quantité mise à jour dans le panier !",
+          });
         } else {
-          // ✅ Ajouter une nouvelle séance au panier avec POST
+          // Ajouter une nouvelle séance au panier avec POST
           await axios.post(
             `${API_URL}/basket/`,
             { session_id: session.id, quantity: ticketCount, user_id: this.userId },
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          alert("✅ Article ajouté au panier !");
+          Swal.fire({
+            icon: "success",
+            title: "Ajout réussi",
+            text: "Article ajouté au panier !",
+          });
         }
       } catch (error) {
-        console.error("❌ Erreur lors de l'ajout au panier:", error);
-        alert("❌ Une erreur est survenue. Veuillez réessayer.");
+        console.error("Erreur lors de l'ajout au panier:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Erreur",
+          text: "Une erreur est survenue. Veuillez réessayer.",
+        });
       }
     }
   }

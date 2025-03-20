@@ -79,7 +79,7 @@ export default {
       localStorage.removeItem("token");
       this.isAuthenticated = false;
       this.isAdmin = false;
-      window.location.href = "/login";
+      window.location.href = "/";
     }
   }
 };

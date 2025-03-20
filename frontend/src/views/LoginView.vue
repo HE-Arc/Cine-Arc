@@ -27,6 +27,7 @@
 import axios from "axios";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
+import Swal from "sweetalert2";
 
 export default {
     setup() {
@@ -45,12 +46,35 @@ export default {
 
             localStorage.setItem("token", response.data.access);
             axios.defaults.headers.common["Authorization"] = `Bearer ${response.data.access}`;
-            router.push("/").then(() => {
-                location.reload();
+
+            Swal.fire({
+                title: "Connexion réussie !",
+                text: "Bienvenue, vous allez être redirigé.",
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false,
             });
+            setTimeout(() => {
+                router.push("/").then(() => {
+                    location.reload();
+                });
+            }, 2000);
         } catch (error) {
             errorMessage.value = "Email ou mot de passe incorrect.";
             console.error(error);
+            if (error.response && error.response.status === 401) {
+            Swal.fire({
+                title: "Échec de la connexion",
+                text: "Email ou mot de passe incorrect.",
+                icon: "error",
+            });
+            } else {
+            Swal.fire({
+                title: "Erreur serveur",
+                text: "Un problème est survenu, veuillez réessayer plus tard.",
+                icon: "error",
+            });
+            }
         }
         };
 

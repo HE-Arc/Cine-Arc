@@ -1,4 +1,5 @@
 import re
+import os
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -16,7 +17,9 @@ from django.conf import settings
 # Récupérer le modèle User
 User = get_user_model()
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 # =======================
 # VIEWSETS
 # =======================
@@ -101,8 +104,8 @@ def create_checkout_session(request):
                 }
             ],
             mode="payment",
-            success_url = f"{settings.FRONTEND_URL}/payment/success",
-            cancel_url = f"{settings.FRONTEND_URL}/payment/cancel",
+            success_url = f"{FRONTEND_URL}/payment/success",
+            cancel_url = f"{FRONTEND_URL}/payment/cancel",
         )
 
         return Response({"checkout_url": session.url})
