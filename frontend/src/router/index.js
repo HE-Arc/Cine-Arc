@@ -8,6 +8,7 @@ import PaymentCancelView from '@/views/PaymentCancelView.vue';
 import NotFoundView from '@/views/NotFoundView.vue';
 import LoginView from "@/views/LoginView.vue";
 import RegisterView from "@/views/RegisterView.vue";
+import AboutViewVue from '@/views/AboutView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,12 +35,12 @@ const router = createRouter({
       component: BasketView, props: true,
       meta: { requiresAuth: true },
     },
-    { 
-      path: "/login", 
-      name: "login", 
-      component: LoginView 
+    {
+      path: "/login",
+      name: "login",
+      component: LoginView
     },
-    { 
+    {
       path: "/register",
       name: "register",
       component: RegisterView
@@ -56,9 +57,13 @@ const router = createRouter({
       component: PaymentCancelView,
       props: true
     },
-    { path: '/:pathMatch(.*)*', 
-      name: 'notFound', 
+    { path: '/:pathMatch(.*)*',
+      name: 'notFound',
       component: NotFoundView
+    },
+    { path: '/about',
+      name: 'About',
+      component: AboutViewVue
     }
   ]
 });
