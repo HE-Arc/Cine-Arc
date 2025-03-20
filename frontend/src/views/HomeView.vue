@@ -10,14 +10,10 @@
       <p>Loading movies...</p>
     </div>
 
-    <!-- Affichage des films si disponible -->
-    <div v-else-if="movies.length > 0" class="row row-cols-1 row-cols-md-3 g-4">
-      <div
-        v-for="movie in movies"
-        :key="movie.id"
-        class="col"
-      >
-        <div class="card" style="cursor: pointer;" @click="goToMovie(movie.id)">
+    <!-- Affichage des films avec 4 colonnes fixes -->
+    <div v-else-if="movies.length > 0" class="row row-cols-2 row-cols-md-4 g-3">
+      <div v-for="movie in movies" :key="movie.id" class="col">
+        <div class="card p-2" style="cursor: pointer;" @click="goToMovie(movie.id)">
           <img :src="movie.picture_url" :alt="movie.title" class="card-img-top movie-img" />
         </div>
       </div>
@@ -49,7 +45,6 @@ export default {
     async fetchMovies() {
       try {
         const response = await axios.get(`${API_BASE_URL}/movies/`);
-        console.log(response.data);
         this.movies = response.data;
       } catch (error) {
         console.error("Error fetching movies:", error);
@@ -66,9 +61,8 @@ export default {
 
 <style scoped>
 .movie-img {
-  height: 100%;
-  object-fit: cover;
   width: 100%;
+  object-fit: cover; /* 🔥 Assure un bon cadrage */
 }
 
 .card {
