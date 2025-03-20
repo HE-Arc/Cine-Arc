@@ -15,6 +15,11 @@
 
       <!-- Section pour aligner Basket et Log In/Logout à droite -->
       <ul class="navbar-nav ms-auto">
+
+        <li class="nav-item">
+          <a class="nav-link" href="/about">A propos</a>
+        </li>
+
         <li class="nav-item">
           <a class="nav-link" href="/basket">
             <i class="bi bi-cart"></i> Panier
