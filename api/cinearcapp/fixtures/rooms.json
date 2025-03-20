@@ -1,0 +1,26 @@
+﻿[
+{
+    "model": "cinearcapp.room",
+    "pk": 1,
+    "fields": {
+        "capacity": 150,
+        "name": "Arc 1"
+    }
+},
+{
+    "model": "cinearcapp.room",
+    "pk": 2,
+    "fields": {
+        "capacity": 150,
+        "name": "Arc 2"
+    }
+},
+{
+    "model": "cinearcapp.room",
+    "pk": 3,
+    "fields": {
+        "capacity": 180,
+        "name": "Arc 3"
+    }
+}
+]
