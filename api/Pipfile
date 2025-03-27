@@ -4,12 +4,18 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
-djangorestframework = "*"
-celery = "*"
 redis = "*"
 django-celery-results = "*"
 django-celery-beat = "*"
+requests = "*"
+django-cors-headers = "*"
+celery = "*"
+djangorestframework = "*"
+dotenv = "*"
+django = "*"
+djangorestframework-simplejwt = "*"
+stripe = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 

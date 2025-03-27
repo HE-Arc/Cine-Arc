@@ -1,0 +1,142 @@
+﻿[
+{
+    "model": "cinearcapp.movie",
+    "pk": 28,
+    "fields": {
+        "title": "Mickey 17",
+        "synopsis": "Mickey 17 est un individu envoyÚ coloniser une planÞte gelÚe. A chaque fois qu'il meurt, ses souvenirs sont implantÚs dans un nouveau corps et sa mission reprend. AprÞs Ûtre mort Ó six reprises, Mickey 17 commence Ó comprendre le but rÚel de sa mission.",
+        "duration": 90,
+        "type": "Science-Fiction, ComÚdie, Aventure",
+        "release_date": "2025-03-05",
+        "picture_url": "https://image.tmdb.org/t/p/w500/pEUdoUwezH3TheOC86bVKq241S0.jpg",
+        "rating": 7,
+        "api_id": 696506
+    }
+},
+{
+    "model": "cinearcapp.movie",
+    "pk": 29,
+    "fields": {
+        "title": "Paddington au PÚrou",
+        "synopsis": "Alors que Paddington rend visite Ó sa tante Lucy bien-aimÚe, qui rÚside dÚsormais Ó la Maison des ours retraitÚs au PÚrou, la famille Brown et notre ours prÚfÚrÚ plongent dans un voyage inattendu et plein de mystÞres, Ó travers la forÛt amazonienne et jusqu'aux sommets des montagnes du Machu Picchu.",
+        "duration": 90,
+        "type": "Familial, Aventure, ComÚdie",
+        "release_date": "2025-01-26",
+        "picture_url": "https://image.tmdb.org/t/p/w500/Q2e1sXd3M7F3nfrpZIXy9zQ2vL.jpg",
+        "rating": 6,
+        "api_id": 516729
+    }
+},
+{
+    "model": "cinearcapp.movie",
+    "pk": 30,
+    "fields": {
+        "title": "A Real Pain",
+        "synopsis": "David et Benji Kaplan, deux cousins aux caractÞres diamÚtralement opposÚs, sÆentendent au moins sur une chose : ils doivent respecter les derniers v£ux de leur grand-mÞre, qui leur a laissÚ en hÚritage assez dÆargent pour qu'ils aillent visiter le pays o¨ elle a grandi. Les cousins s'embarquent donc ensemble vers la Pologne. Sur leur parcours, une Útape cruciale: le camp de Majdanek, o¨ leur a´eule a ÚtÚ emprisonnÚe durant lÆHolocauste. Pour David, lÆintellectuel responsable mais fragile, comme ",
+        "duration": 90,
+        "type": "ComÚdie, Drame",
+        "release_date": "2025-01-16",
+        "picture_url": "https://image.tmdb.org/t/p/w500/kVk92AZm4gJXi5aucIGikDwSRjn.jpg",
+        "rating": 6,
+        "api_id": 1013850
+    }
+},
+{
+    "model": "cinearcapp.movie",
+    "pk": 31,
+    "fields": {
+        "title": "Sing Sing",
+        "synopsis": "Des prisonniers s'Úchappent un peu de leur rÚel en formant une troupe de thÚÔtre.",
+        "duration": 90,
+        "type": "Drame",
+        "release_date": "2025-03-06",
+        "picture_url": "https://image.tmdb.org/t/p/w500/zDnYHZDoqd3pSWbsAkxwQKB0jcj.jpg",
+        "rating": 7,
+        "api_id": 1155828
+    }
+},
+{
+    "model": "cinearcapp.movie",
+    "pk": 32,
+    "fields": {
+        "title": "VidaaMuyarchi",
+        "synopsis": "Un voyage en couple prend une tournure inquiÚtante lorsque l'Úpouse dispara¯t, poussant le mari Ó mener une recherche frÚnÚtique tandis qu'un mystÚrieux antagoniste complique leur quÛte.",
+        "duration": 90,
+        "type": "Action, Thriller, Drame",
+        "release_date": "2025-02-06",
+        "picture_url": "https://image.tmdb.org/t/p/w500/8IpYHDS3yIM2hy2frNZOzfvSqSE.jpg",
+        "rating": 6,
+        "api_id": 949716
+    }
+},
+{
+    "model": "cinearcapp.movie",
+    "pk": 33,
+    "fields": {
+        "title": "In the Lost Lands",
+        "synopsis": "Une reine rÛve d'obtenir le don de mÚtamorphose. Elle engage la sorciÞre Gray Alys, une femme aussi redoutÚe que puissante. EnvoyÚs dans les Terres perdues, Alys et son guide, le vagabond Boyce, doivent dÚjouer et combattre l'homme et le dÚmon dans une fable qui explore la nature du bien et du mal, de la dette et de l'accomplissement, de l'amour et de la perte.",
+        "duration": 90,
+        "type": "Fantastique, Aventure, Action",
+        "release_date": "2025-03-06",
+        "picture_url": "https://image.tmdb.org/t/p/w500/a8gdJfC7PcRo2kyc83pPGPb4IZr.jpg",
+        "rating": 5,
+        "api_id": 324544
+    }
+},
+{
+    "model": "cinearcapp.movie",
+    "pk": 34,
+    "fields": {
+        "title": "En premiÞre ligne",
+        "synopsis": "Floria est une infirmiÞre dÚvouÚe qui fait face au rythme implacable dÆun service hospitalier en sous-effectif. En dÚpit du manque de moyens, elle tente dÆapporter humanitÚ et chaleur Ó chacun de ses patients. Mais au fil des heures, les demandes se font de plus en plus pressantes, et malgrÚ son professionnalisme, la situation commence dangereusement Ó lui Úchapperà",
+        "duration": 90,
+        "type": "Drame",
+        "release_date": "2025-02-27",
+        "picture_url": "https://image.tmdb.org/t/p/w500/xaVtmZBH8sSt3q0a5GuYSeyVnww.jpg",
+        "rating": 9,
+        "api_id": 1356670
+    }
+},
+{
+    "model": "cinearcapp.movie",
+    "pk": 35,
+    "fields": {
+        "title": "LÆEspion de Dieu",
+        "synopsis": "Dans les annÚes 1940, un pasteur allemand rejoint les rangs de la rÚsistance en s'opposant publiquement au rÚgime nazi. MarquÚ dans l'enfance par la mort de son grand frÞre, un soldat emportÚ dans la Grande Guerre, Dietrich Bonhoeffer poursuit des Útudes de thÚologie aux ╔tats-Unis pendant la Grande DÚpression et constate les iniquitÚs sociales qui affligent le peuple afro-amÚricain. De retour en Allemagne, il tente de mettre en garde ses contemporains contre les dÚrives du nazisme.",
+        "duration": 90,
+        "type": "Histoire, Drame, Guerre",
+        "release_date": "2025-03-13",
+        "picture_url": "https://image.tmdb.org/t/p/w500/2vtfMMyyvfgwxgZ9FleylUeyupc.jpg",
+        "rating": 6,
+        "api_id": 1079244
+    }
+},
+{
+    "model": "cinearcapp.movie",
+    "pk": 36,
+    "fields": {
+        "title": "Barbapapa: Life in Green",
+        "synopsis": "",
+        "duration": 90,
+        "type": "",
+        "release_date": "2025-02-06",
+        "picture_url": "https://image.tmdb.org/t/p/w500/wVFLZv0u7KRVEdtCQ1bX67cfLgZ.jpg",
+        "rating": 0,
+        "api_id": 1420939
+    }
+},
+{
+    "model": "cinearcapp.movie",
+    "pk": 37,
+    "fields": {
+        "title": "When the Light Breaks",
+        "synopsis": "Le jour se lÞve sur une longue journÚe dÆÚtÚ en Islande. DÆun coucher de soleil Ó lÆautre, Una une jeune Útudiante en art, rencontre lÆamour, lÆamitiÚ, le chagrin et la beautÚ.",
+        "duration": 90,
+        "type": "Drame",
+        "release_date": "2025-02-19",
+        "picture_url": "https://image.tmdb.org/t/p/w500/aTzSagrNROn3oR7gsoQyD5yP2XG.jpg",
+        "rating": 6,
+        "api_id": 1257407
+    }
+}
+]

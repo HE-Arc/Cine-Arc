@@ -1,12 +1,32 @@
+import os
 import requests
 from datetime import datetime
 from celery import shared_task
+from dotenv import load_dotenv
 from cinearcapp.models import Movie
 
-TMDB_API_KEY = "a659f5bf4363e91056c093da0b3c3372"
+load_dotenv()
+
+TMDB_API_KEY = os.getenv("TMDB_API_KEY")
+
+if not TMDB_API_KEY:
+    raise ValueError("ERREUR: La clé API TMDB est manquante ! Vérifiez votre fichier .env")
+
 TMDB_NOW_PLAYING_URL = "https://api.themoviedb.org/3/movie/now_playing"
+TMDB_MOVIE_DETAILS_URL = "https://api.themoviedb.org/3/movie/{movie_id}"
 TMDB_GENRES_URL = "https://api.themoviedb.org/3/genre/movie/list"
 
+def fetch_movie_runtime(movie_id):
+    """Récupère la durée du film en minutes via l'API TMDB"""
+    try:
+        url = TMDB_MOVIE_DETAILS_URL.format(movie_id=movie_id)
+        response = requests.get(url, params={"api_key": TMDB_API_KEY, "language": "fr-FR"})
+        response.raise_for_status()
+        data = response.json()
+        return data.get("runtime", 90)  # Si la durée n'est pas trouvée, utiliser 90 min par défaut
+    except requests.exceptions.RequestException as e:
+        print(f"Erreur lors de la récupération de la durée pour le film {movie_id} : {e}")
+        return 90  # Valeur par défaut en cas d'erreur
 
 def fetch_genres():
     """Récupère la liste des genres depuis TMDB et les stocke dans un dictionnaire."""
@@ -50,10 +70,12 @@ def fetch_and_store_movies():
         movies = data['results'][:10]
 
         for movie in movies:
+            api_id = movie.get("id")
             title = movie.get("title", "Titre Inconnu")
             synopsis = movie.get("overview", "")[:500]
-            duration = movie.get("runtime") or 90
             genre_ids = movie.get("genre_ids", [])
+
+            duration = fetch_movie_runtime(api_id)
 
             # Convertir les IDs en noms de genres
             type_movie = ", ".join(genre_mapping.get(g, f"Genre inconnu ({g})") for g in genre_ids)
@@ -61,7 +83,6 @@ def fetch_and_store_movies():
             release_date = movie.get("release_date", None)
             picture_url = f"https://image.tmdb.org/t/p/w500{movie.get('poster_path')}" if movie.get("poster_path") else ""
             rating = int(movie.get("vote_average", 0))
-            api_id = movie.get("id")
 
             if release_date:
                 try:
