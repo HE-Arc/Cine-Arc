@@ -29,7 +29,11 @@ const fetchData = async () => {
     console.log("Sessions fetched:", sessionsResponse.data); // 🔍 Vérifie ce qui est récupéré
     movies.value = moviesResponse.data;
     rooms.value = roomsResponse.data;
-    sessions.value = sessionsResponse.data;
+
+    sessions.value = sessionsResponse.data.filter(session => {
+      const sessionDate = new Date(session.date_hour);
+      return sessionDate >= new Date();  // Comparer avec la date actuelle
+    });
   } catch (error) {
     console.error(error);
     errors.value = "Erreur lors du chargement des données.";
