@@ -89,20 +89,24 @@ export default {
     }
   },
   computed: {
-    // Filtrer les séances pour n'afficher que celles correspondant au film actuel
-    filteredSessions() {
-      if (!this.movie || !this.sessions) return [];
+  // Filtrer les séances pour n'afficher que celles correspondant au film actuel
+  filteredSessions() {
+    if (!this.movie || !this.sessions) return [];
 
-      return this.sessions
-        .filter(session => session.movie && session.movie.id === this.movie.id)
-        .map(session => {
-          return {
-            ...session,
-            formattedDate: this.formatDate(session.date_hour)
-          };
-        });
-    }
-  },
+    // Filtrer les séances pour ne garder que celles du film actuel et qui ne sont pas passées
+    return this.sessions
+      .filter(session => {
+        const sessionDate = new Date(session.date_hour);
+        return session.movie && session.movie.id === this.movie.id && sessionDate >= new Date(); // Garder que les futures séances
+      })
+      .map(session => {
+        return {
+          ...session,
+          formattedDate: this.formatDate(session.date_hour)
+        };
+      });
+  }
+},
   methods: {
     formatDate(isoString) {
       const date = new Date(isoString);
