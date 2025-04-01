@@ -119,8 +119,13 @@ export default {
 
       try {
         const API_URL = import.meta.env.VITE_API_URL;
+        const token = localStorage.getItem("token");
         await axios.patch(`${API_URL}/basket/${basket.id}/`, {
           quantity: newQuantity
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}` // ✅ ajoute le token ici
+          }
         });
 
         basket.quantity = newQuantity;
