@@ -6,13 +6,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .models import Movie, Room, Session, Basket
 from .serializers import UserSerializer, MovieSerializer, RoomSerializer, SessionSerializer, BasketSerializer
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 import stripe
 from django.conf import settings
+import time
+from django.utils.text import slugify
 
 # Récupérer le modèle User
 User = get_user_model()
@@ -167,6 +168,11 @@ def register_user(request):
     password_error = is_valid_password(password)
     if password_error:
         return Response({"error": password_error}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Si le username existe déjà, on le rend unique (slugifié + timestamp)
+    if User.objects.filter(username=username).exists():
+        base = slugify(username)
+        username = f"{base}_{int(time.time())}"
 
     # Création de l'utilisateur
     user = User.objects.create_user(username=username, email=email, password=password)

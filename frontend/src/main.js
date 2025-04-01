@@ -7,6 +7,23 @@ import store from "./store";
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
+// Vérification du token expiré
+const token = localStorage.getItem("token")
+if (token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    const isExpired = payload.exp * 1000 < Date.now()
+
+    if (isExpired) {
+      console.warn("Token expiré, déconnexion automatique")
+      store.dispatch("logout")  // Appelle le logout de Vuex
+    }
+  } catch (e) {
+    console.error("Erreur de parsing du token", e)
+    store.dispatch("logout")
+  }
+}
+
 // Créer l'application Vue
 const app = createApp(App)
 
