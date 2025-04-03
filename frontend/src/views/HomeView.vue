@@ -99,7 +99,6 @@ export default {
 <style scoped>
 .movie-img {
   width: 100%;
-  height: 300px;
   object-fit: cover;
   border-radius: 10px;
 }
