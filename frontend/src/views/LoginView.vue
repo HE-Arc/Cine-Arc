@@ -1,35 +1,37 @@
 <template>
-  <div class="container">
-    <h2>Connexion</h2>
-    <form @submit.prevent="validateForm">
-      <!-- Email input field -->
-      <div class="form-group mb-3">
-        <label>Email</label>
-        <input v-model="email" type="email" class="form-control" />
-        <!-- Display email-specific error message -->
-        <small v-if="emailError" class="text-danger">{{ emailError }}</small>
-      </div>
+  <div class="login-wrapper d-flex justify-content-center pt-5 pb-5">
+    <div class="card shadow p-4" style="width: 100%; max-width: 420px; height: 90%; max-height: 550px;">
+      <h2 class="text-center mb-4">Connexion</h2>
+      <form @submit.prevent="validateForm">
+        <!-- Email -->
+        <div class="form-group mb-3">
+          <label>Email</label>
+          <input v-model="email" type="email" class="form-control" placeholder="ex: utilisateur@mail.com" />
+          <small v-if="emailError" class="text-danger">{{ emailError }}</small>
+        </div>
 
-      <!-- Password input field -->
-      <div class="form-group mb-3">
-        <label>Mot de passe</label>
-        <input v-model="password" type="password" class="form-control" />
-        <!-- Display password-specific error message -->
-        <small v-if="passwordError" class="text-danger">{{ passwordError }}</small>
-      </div>
+        <!-- Password -->
+        <div class="form-group mb-3">
+          <label>Mot de passe</label>
+          <input v-model="password" type="password" class="form-control" placeholder="••••••" />
+          <small v-if="passwordError" class="text-danger">{{ passwordError }}</small>
+        </div>
 
-      <!-- Submit button -->
-      <button type="submit" class="btn btn-success">Se connecter</button>
-      <!-- Display general error message -->
-      <p v-if="errorMessage" class="text-danger mt-2">{{ errorMessage }}</p>
+        <!-- Erreur globale -->
+        <p v-if="errorMessage" class="text-danger">{{ errorMessage }}</p>
 
-      <!-- Link to the registration page -->
-      <p class="mt-3">
-        Pas encore de compte ? <router-link to="/register">Créer un compte</router-link>
-      </p>
-    </form>
+        <!-- Bouton -->
+        <button type="submit" class="btn btn-success w-100 mt-3">Se connecter</button>
+
+        <!-- Lien register -->
+        <p class="mt-4 text-center">
+          Pas encore de compte ? <router-link to="/register">Créer un compte</router-link>
+        </p>
+      </form>
+    </div>
   </div>
 </template>
+
 
 <script>
 import axios from "axios";
@@ -134,9 +136,19 @@ export default {
 </script>
 
 <style scoped>
-.container {
-  max-width: 400px;
-  margin: auto;
-  padding: 20px;
+.login-wrapper {
+  background-color: #f4f6f9;
+  min-height: 92vh;
+}
+
+.card {
+  border-radius: 10px;
+}
+
+.form-control {
+  border-radius: 6px;
+  height: 45px;
+  font-size: 15px;
 }
 </style>
+

@@ -1,49 +1,51 @@
 <template>
-  <div class="container">
-    <h2>Créer un compte</h2>
+  <div class="register-wrapper d-flex justify-content-center pt-5 pb-5">
+    <div class="card shadow p-4" style="width: 100%; max-width: 460px; height: 100%; max-height: 580px;">
+      <h2 class="text-center mb-4">Créer un compte</h2>
 
-    <!-- Form for user registration -->
-    <form @submit.prevent="register">
-      <!-- Username input field -->
-      <div class="form-group">
-        <label>Nom d'utilisateur</label>
-        <input v-model="username" type="text" class="form-control" required />
-      </div>
+      <form @submit.prevent="register">
+        <!-- Nom d'utilisateur -->
+        <div class="form-group mb-3">
+          <label>Nom d'utilisateur</label>
+          <input v-model="username" type="text" class="form-control" placeholder="ex: JeanDupont" required />
+        </div>
 
-      <!-- Email input field -->
-      <div class="form-group">
-        <label>Email</label>
-        <input v-model="email" type="email" class="form-control" required />
-      </div>
+        <!-- Email -->
+        <div class="form-group mb-3">
+          <label>Email</label>
+          <input v-model="email" type="email" class="form-control" placeholder="ex: utilisateur@mail.com" required />
+        </div>
 
-      <!-- Password input field with validation hint -->
-      <div class="form-group">
-        <label>Mot de passe</label>
-        <input v-model="password" type="password" class="form-control" required />
-        <small class="text-muted">
-          Doit contenir au moins 8 caractères et un caractère spécial (!@#$%^&*).
-        </small>
-      </div>
+        <!-- Mot de passe -->
+        <div class="form-group mb-2">
+          <label>Mot de passe</label>
+          <input v-model="password" type="password" class="form-control" placeholder="••••••" required />
+          <small class="text-muted">
+            Doit contenir au moins 8 caractères et un caractère spécial (!@#$%^&*).
+          </small>
+        </div>
 
-      <!-- Confirm password input field -->
-      <div class="form-group">
-        <label>Confirmer le mot de passe</label>
-        <input v-model="confirmPassword" type="password" class="form-control" required />
-      </div>
+        <!-- Confirmation -->
+        <div class="form-group mb-3">
+          <label>Confirmer le mot de passe</label>
+          <input v-model="confirmPassword" type="password" class="form-control" placeholder="••••••" required />
+        </div>
 
-      <!-- Display error message if any -->
-      <p v-if="errorMessage" class="text-danger mt-2">{{ errorMessage }}</p>
+        <!-- Message d'erreur global -->
+        <p v-if="errorMessage" class="text-danger mb-2">{{ errorMessage }}</p>
 
-      <!-- Submit button -->
-      <button type="submit" class="btn btn-primary">S'inscrire</button>
-    </form>
+        <!-- Bouton -->
+        <button type="submit" class="btn btn-primary w-100">S'inscrire</button>
 
-    <!-- Link to login page for existing users -->
-    <p class="mt-3">
-      Déjà un compte ? <router-link to="/login">Se connecter</router-link>
-    </p>
+        <!-- Redirection login -->
+        <p class="mt-4 text-center">
+          Déjà un compte ? <router-link to="/login">Se connecter</router-link>
+        </p>
+      </form>
+    </div>
   </div>
 </template>
+
 
 <script>
 import axios from "axios";
@@ -134,9 +136,19 @@ export default {
 </script>
 
 <style scoped>
-.container {
-  max-width: 400px; /* Limit the container width */
-  margin: auto; /* Center the container */
-  padding: 20px; /* Add padding inside the container */
+.register-wrapper {
+  background-color: #f4f6f9;
+  min-height: 80vh;
+}
+
+.card {
+  border-radius: 10px;
+}
+
+.form-control {
+  border-radius: 6px;
+  height: 45px;
+  font-size: 15px;
 }
 </style>
+
