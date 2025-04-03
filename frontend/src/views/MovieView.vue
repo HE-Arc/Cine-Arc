@@ -52,7 +52,7 @@
                       @input="updateTicketCount(session, $event.target.value)"
                     />
                     <!-- Button to add session to the basket -->
-                    <button @click="addToBasket(session)" class="btn btn-sm btn-primary ml-2">Add</button>
+                    <button @click="addToBasket(session)" class="btn btn-sm btn-primary ml-2">Ajouter</button>
                   </div>
                 </li>
               </ul>

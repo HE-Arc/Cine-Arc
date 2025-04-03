@@ -79,7 +79,9 @@ export default {
           }
         });
 
-        this.baskets = response.data;
+        this.baskets = this.baskets = response.data.filter(item => {
+        return new Date(item.session.date_hour) > new Date();
+      });
       } catch (error) {
         Swal.fire("Erreur", "Impossible de charger votre panier.", "error");
       }
