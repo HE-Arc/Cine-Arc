@@ -11,11 +11,11 @@ requests = "*"
 django-cors-headers = "*"
 celery = "*"
 djangorestframework = "*"
-dotenv = "*"
 django = "*"
 djangorestframework-simplejwt = "*"
 stripe = "*"
 psycopg2-binary = "*"
+dotenv = "*"
 
 [dev-packages]
 

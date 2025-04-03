@@ -5,55 +5,68 @@ from celery import shared_task
 from dotenv import load_dotenv
 from cinearcapp.models import Movie
 
+# Load environment variables from the .env file
 load_dotenv()
 
+# Retrieve the TMDB API key from the environment variables
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 
+# Raise an error if the API key is missing
 if not TMDB_API_KEY:
-    raise ValueError("ERREUR: La clé API TMDB est manquante ! Vérifiez votre fichier .env")
+    raise ValueError("ERROR: TMDB API key is missing! Check your .env file")
 
+# Define TMDB API endpoints
 TMDB_NOW_PLAYING_URL = "https://api.themoviedb.org/3/movie/now_playing"
 TMDB_MOVIE_DETAILS_URL = "https://api.themoviedb.org/3/movie/{movie_id}"
 TMDB_GENRES_URL = "https://api.themoviedb.org/3/genre/movie/list"
 
 def fetch_movie_runtime(movie_id):
-    """Récupère la durée du film en minutes via l'API TMDB"""
+    """
+    Fetch the runtime of a movie in minutes using the TMDB API.
+    If the runtime is not found, a default value of 90 minutes is used.
+    """
     try:
         url = TMDB_MOVIE_DETAILS_URL.format(movie_id=movie_id)
         response = requests.get(url, params={"api_key": TMDB_API_KEY, "language": "fr-FR"})
         response.raise_for_status()
         data = response.json()
-        return data.get("runtime", 90)  # Si la durée n'est pas trouvée, utiliser 90 min par défaut
+        return data.get("runtime", 90)  # Default to 90 minutes if runtime is not found
     except requests.exceptions.RequestException as e:
-        print(f"Erreur lors de la récupération de la durée pour le film {movie_id} : {e}")
-        return 90  # Valeur par défaut en cas d'erreur
+        print(f"Error fetching runtime for movie {movie_id}: {e}")
+        return 90  # Default value in case of an error
 
 def fetch_genres():
-    """Récupère la liste des genres depuis TMDB et les stocke dans un dictionnaire."""
+    """
+    Fetch the list of genres from TMDB and store them in a dictionary.
+    Returns a dictionary mapping genre IDs to genre names.
+    """
     try:
         response = requests.get(TMDB_GENRES_URL, params={"api_key": TMDB_API_KEY, "language": "fr-FR"})
         response.raise_for_status()
         genres_data = response.json()
         
-        # Transformer la liste des genres en un dictionnaire {id: nom}
+        # Transform the list of genres into a dictionary {id: name}
         genre_dict = {genre["id"]: genre["name"] for genre in genres_data.get("genres", [])}
         return genre_dict
 
     except requests.exceptions.RequestException as e:
-        print(f"Erreur lors de la récupération des genres : {e}")
+        print(f"Error fetching genres: {e}")
         return {}
-    
 
 @shared_task
 def fetch_and_store_movies():
-    """Récupère les films actuellement en salle et les stocke en BD."""
+    """
+    Fetch the currently playing movies from TMDB and store them in the database.
+    If a movie already exists in the database, it will not be added again.
+    """
     try:
-        # Récupérer la correspondance ID -> Nom des genres
+        # Fetch the mapping of genre IDs to genre names
         genre_mapping = fetch_genres()
 
         if not genre_mapping:
-            print("Attention : aucun genre récupéré, les films seront enregistrés avec des IDs au lieu des noms.")
+            print("Warning: No genres retrieved, movies will be saved with IDs instead of names.")
 
+        # Define parameters for the TMDB API request
         params = {
             "api_key": TMDB_API_KEY,
             "language": "fr-FR",
@@ -64,33 +77,40 @@ def fetch_and_store_movies():
         response.raise_for_status()
         data = response.json()
 
+        # Ensure the 'results' key exists in the API response
         if 'results' not in data:
-            raise ValueError("Clé 'results' absente dans la réponse de TMDB")
+            raise ValueError("Key 'results' missing in TMDB response")
 
+        # Limit the number of movies to process to 10
         movies = data['results'][:10]
 
         for movie in movies:
+            # Extract movie details from the API response
             api_id = movie.get("id")
-            title = movie.get("title", "Titre Inconnu")
+            title = movie.get("title", "Unknown Title")
             synopsis = movie.get("overview", "")[:500]
             genre_ids = movie.get("genre_ids", [])
 
+            # Fetch the runtime of the movie
             duration = fetch_movie_runtime(api_id)
 
-            # Convertir les IDs en noms de genres
-            type_movie = ", ".join(genre_mapping.get(g, f"Genre inconnu ({g})") for g in genre_ids)
+            # Convert genre IDs to genre names
+            type_movie = ", ".join(genre_mapping.get(g, f"Unknown Genre ({g})") for g in genre_ids)
 
             release_date = movie.get("release_date", None)
             picture_url = f"https://image.tmdb.org/t/p/w500{movie.get('poster_path')}" if movie.get("poster_path") else ""
             rating = int(movie.get("vote_average", 0))
 
+            # Parse the release date if it exists
             if release_date:
                 try:
                     release_date = datetime.strptime(release_date, "%Y-%m-%d").date()
                 except ValueError:
                     release_date = None
 
+            # Check if the movie already exists in the database
             if not Movie.objects.filter(api_id=api_id).exists():
+                # Create a new movie record in the database
                 Movie.objects.create(
                     title=title,
                     synopsis=synopsis,
@@ -101,15 +121,15 @@ def fetch_and_store_movies():
                     rating=rating,
                     api_id=api_id
                 )
-                print(f"Film ajouté : {title} ({type_movie})")
+                print(f"Movie added: {title} ({type_movie})")
             else:
-                print(f"Film déjà présent : {title}")
+                print(f"Movie already exists: {title}")
 
-        return f"{len(movies)} films ajoutés avec succès"
+        return f"{len(movies)} movies successfully added"
 
     except requests.exceptions.RequestException as e:
-        return f"Erreur de requête à TMDB : {str(e)}"
+        return f"TMDB request error: {str(e)}"
     except ValueError as e:
-        return f"Erreur de format de données : {str(e)}"
+        return f"Data format error: {str(e)}"
     except Exception as e:
-        return f"Erreur inattendue : {str(e)}"
+        return f"Unexpected error: {str(e)}"

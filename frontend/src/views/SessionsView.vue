@@ -2,9 +2,10 @@
 import axios from "axios";
 import { ref, onMounted, watch, nextTick } from "vue";
 
-// Remplacer par l'URL de l'API depuis les variables d'environnement
+// Replace with the API URL from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+// Reactive variables for movies, rooms, sessions, and form inputs
 const movies = ref([]);
 const rooms = ref([]);
 const sessions = ref([]);
@@ -15,9 +16,9 @@ const success = ref(false);
 const errors = ref(null);
 const isEditing = ref(false);
 const currentSessionId = ref(null);
-const formRef = ref(null); // Référence au formulaire
+const formRef = ref(null); // Reference to the form element
 
-// Charger les films, salles et séances
+// Fetch movies, rooms, and sessions data from the API
 const fetchData = async () => {
   try {
     const [moviesResponse, roomsResponse, sessionsResponse] = await Promise.all([
@@ -26,25 +27,29 @@ const fetchData = async () => {
       axios.get(`${API_BASE_URL}/sessions/`),
     ]);
 
-    console.log("Sessions fetched:", sessionsResponse.data); // 🔍 Vérifie ce qui est récupéré
+    // Filter sessions to only include future sessions
     movies.value = moviesResponse.data;
     rooms.value = roomsResponse.data;
-    sessions.value = sessionsResponse.data;
+
+    sessions.value = sessionsResponse.data.filter(session => {
+      const sessionDate = new Date(session.date_hour);
+      return sessionDate >= new Date(); // Compare with the current date
+    });
   } catch (error) {
-    console.error(error);
-    errors.value = "Erreur lors du chargement des données.";
+    errors.value = "Erreur lors du chargement des données."; // Error message for data loading
   }
 };
 
+// Fetch data when the component is mounted
 onMounted(fetchData);
 
-// Mettre automatiquement à jour `roomId` lorsque `movieId` change
+// Automatically update `roomId` when `movieId` changes
 watch(movieId, (newMovieId) => {
   const selectedMovie = movies.value.find(movie => movie.id === newMovieId);
   roomId.value = selectedMovie?.roomId || "";
 });
 
-// Formater la date pour éviter le "Z" (UTC)
+// Format the date to avoid the "Z" (UTC) suffix
 const formatDate = (isoString) => {
   if (!isoString) return "";
   const date = new Date(isoString);
@@ -54,7 +59,7 @@ const formatDate = (isoString) => {
   });
 };
 
-// Créer ou Modifier une séance
+// Create or update a session
 const submit = async () => {
   try {
     const payload = {
@@ -64,22 +69,24 @@ const submit = async () => {
     };
 
     if (isEditing.value) {
-      await axios.put(`${API_BASE_URL}/sessions/${currentSessionId.value}/`, payload); // Utilisation de API_BASE_URL
+      // Update an existing session
+      await axios.put(`${API_BASE_URL}/sessions/${currentSessionId.value}/`, payload);
     } else {
-      await axios.post(`${API_BASE_URL}/sessions/`, payload); // Utilisation de API_BASE_URL
+      // Create a new session
+      await axios.post(`${API_BASE_URL}/sessions/`, payload);
     }
 
-    success.value = true;
-    errors.value = null;
-    resetForm();
-    fetchData();
+    success.value = true; // Indicate success
+    errors.value = null; // Clear errors
+    resetForm(); // Reset the form
+    fetchData(); // Refresh the data
   } catch (error) {
-    errors.value = error.response?.data || "Une erreur est survenue.";
-    success.value = false;
+    errors.value = error.response?.data || "Une erreur est survenue."; // Display error message
+    success.value = false; // Indicate failure
   }
 };
 
-// Réinitialiser le formulaire
+// Reset the form fields
 const resetForm = () => {
   movieId.value = "";
   roomId.value = "";
@@ -88,40 +95,40 @@ const resetForm = () => {
   currentSessionId.value = null;
 };
 
-// Modifier une séance et faire défiler la page vers le formulaire
+// Edit a session and scroll to the form
 const editSession = (session) => {
-  isEditing.value = true;
-  currentSessionId.value = session.id;
+  isEditing.value = true; // Set editing mode
+  currentSessionId.value = session.id; // Set the current session ID
 
-  // Pré-remplir les champs du formulaire
+  // Pre-fill the form fields
   movieId.value = session.movie.id;
 
-  // Met à jour la salle et force Vue à rafraîchir l'affichage
+  // Update the room and force Vue to refresh the display
   roomId.value = session.room.id;
   nextTick(() => {
-    roomId.value = session.room.id; // Assure que Vue le met bien à jour
+    roomId.value = session.room.id; // Ensure Vue updates it
   });
 
-  // Corrige la date pour `datetime-local`
+  // Adjust the date for `datetime-local` input
   const sessionDate = new Date(session.date_hour);
   const localDate = new Date(sessionDate.getTime() - sessionDate.getTimezoneOffset() * 60000);
   dateHour.value = localDate.toISOString().slice(0, 16);
 
-  //Fait défiler vers le formulaire
+  // Scroll to the form
   nextTick(() => {
     formRef.value.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 };
 
-// Supprimer une séance
+// Delete a session
 const deleteSession = async (sessionId) => {
-  if (!confirm("Voulez-vous vraiment supprimer cette séance ?")) return;
+  if (!confirm("Voulez-vous vraiment supprimer cette séance ?")) return; // Confirm deletion
 
   try {
-    await axios.delete(`${API_BASE_URL}/sessions/${sessionId}/`); // Utilisation de API_BASE_URL
-    fetchData();
+    await axios.delete(`${API_BASE_URL}/sessions/${sessionId}/`); // Delete the session
+    fetchData(); // Refresh the data
   } catch {
-    errors.value = "Erreur lors de la suppression.";
+    errors.value = "Erreur lors de la suppression."; // Error message for deletion
   }
 };
 
@@ -131,6 +138,7 @@ const deleteSession = async (sessionId) => {
   <div class="container">
     <h1>Séances</h1>
 
+    <!-- Form for creating or editing a session -->
     <form ref="formRef" @submit.prevent="submit">
       <label>Film :</label>
       <select v-model="movieId" required>
@@ -156,9 +164,11 @@ const deleteSession = async (sessionId) => {
       </button>
     </form>
 
+    <!-- Success and error messages -->
     <p v-if="success" class="success">Séance enregistrée avec succès !</p>
     <p v-if="errors" class="error">{{ errors }}</p>
 
+    <!-- List of sessions -->
     <h2>Liste des Séances</h2>
     <ul>
       <li v-for="session in sessions" :key="session.id">
@@ -224,7 +234,7 @@ li {
 }
 
 .movie-thumb {
-  width: 60px;  /* Un peu plus grand pour mieux voir l'affiche */
+  width: 60px;  /* Slightly larger for better visibility */
   height: 90px;
 }
 
@@ -240,7 +250,7 @@ li {
 }
 
 button {
-  width: 100%; /*Tous les boutons prennent toute la largeur */
+  width: 100%; /* All buttons take full width */
   padding: 10px;
   border: none;
   border-radius: 5px;
@@ -249,14 +259,14 @@ button {
   cursor: pointer;
   color: white;
   text-align: center;
-  display: block; /* Empêche les petits écarts de taille */
+  display: block; /* Prevent small size discrepancies */
 }
 
 button:hover {
   opacity: 0.8;
 }
 
-/* Bouton "Créer" en vert */
+/* "Create" button in green */
 .create-btn {
   background-color: #28a745;
 }
@@ -265,7 +275,7 @@ button:hover {
   background-color: #218838;
 }
 
-/* Bouton "Ajouter un Film" en bleu */
+/* "Add Movie" button in blue */
 .add-movie-btn {
   background-color: #007bff;
   margin-top: 10px;
@@ -275,7 +285,7 @@ button:hover {
   background-color: #0056b3;
 }
 
-/* Bouton Modifier en Orange */
+/* Edit button in orange */
 .edit-btn {
   background-color: #ff9800;
 }
@@ -284,7 +294,7 @@ button:hover {
   background-color: #e68900;
 }
 
-/* Bouton Supprimer en Rouge */
+/* Delete button in red */
 .delete-btn {
   background-color: #d32f2f;
 }

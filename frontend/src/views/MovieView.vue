@@ -1,43 +1,48 @@
 <template>
   <div class="container mt-5">
     <div class="row">
-      <!-- Encadré gauche pour les informations du film -->
+      <!-- Left section for movie information -->
       <div class="col-md-4">
         <div v-if="movie" class="card movie-card">
           <div class="card-body">
             <div class="card mb-3">
+              <!-- Display movie poster -->
               <img :src="movie.picture_url" :alt="movie.title" class="card-img-top movie-img" />
             </div>
+            <!-- Display movie title, release date, duration, genre, and rating -->
             <h5 class="card-title">{{ movie.title }}</h5>
             <h6 class="card-subtitle mb-2 text-muted">{{ movie.release_date }}</h6>
-            <p><strong>Durée :</strong> {{ movie.duration }} min</p>
-            <p><strong>Genre :</strong> {{ movie.type }}</p>
-            <p><strong>Note :</strong>  {{ movie.rating }} / 10 ⭐</p>
+            <p><strong>Duration:</strong> {{ movie.duration }} min</p>
+            <p><strong>Genre:</strong> {{ movie.type }}</p>
+            <p><strong>Rating:</strong>  {{ movie.rating }} / 10 ⭐</p>
           </div>
         </div>
       </div>
 
-      <!-- Conteneur central pour le synopsis et les séances -->
+      <!-- Central section for synopsis and sessions -->
       <div class="col-md-8">
         <div v-if="movie" class="card mb-3">
           <div class="card-body">
+            <!-- Display movie synopsis -->
             <h5 class="card-title">Synopsis</h5>
             <p>{{ movie.synopsis }}</p>
           </div>
         </div>
 
-        <!-- Séances disponibles -->
+        <!-- Available sessions -->
         <div class="card mb-3">
           <div class="card-body">
             <h5 class="card-title">Séances disponibles</h5>
             <div v-if="filteredSessions.length > 0">
               <ul class="list-group">
+                <!-- Loop through filtered sessions and display each session -->
                 <li v-for="session in filteredSessions" :key="session.id" class="list-group-item d-flex justify-content-between align-items-center">
                   <div>
+                    <!-- Display session date and room name -->
                     <strong>{{ session.formattedDate }}</strong> - {{ session.room.name }}
                   </div>
                   <div class="d-flex align-items-center">
-                    <!-- Champ de saisie pour modifier le nombre de billets -->
+                    <!-- Input field to modify ticket quantity -->
                     <input
                       type="number"
                       :value="getTicketsCount(session)"
@@ -46,13 +51,15 @@
                       class="form-control form-control-sm"
                       @input="updateTicketCount(session, $event.target.value)"
                     />
-                    <button @click="addToBasket(session)" class="btn btn-sm btn-primary ml-2">Ajouter</button>
+                    <!-- Button to add session to the basket -->
+                    <button @click="addToBasket(session)" class="btn btn-sm btn-primary ml-2">Add</button>
                   </div>
                 </li>
               </ul>
             </div>
             <div v-else>
-              <p>Aucune séance n'est disponible pour ce film</p>
+              <!-- Message displayed if no sessions are available -->
+              <p>Aucune séance disponible pour ce film</p>
             </div>
           </div>
         </div>
@@ -68,42 +75,51 @@ import Swal from "sweetalert2";
 export default {
   data() {
     return {
-      movie: null,
-      sessions: [],
-      userId: null,
+      movie: null, // Stores the movie details
+      sessions: [], // Stores all available sessions
+      userId: null, // Stores the ID of the logged-in user
     };
   },
   async mounted() {
     try {
       const API_URL = import.meta.env.VITE_API_URL;
 
-      // Récupérer les détails du film
+      // Fetch movie details based on the route parameter
       const movieResponse = await axios.get(`${API_URL}/movies/${this.$route.params.id}`);
       this.movie = movieResponse.data;
 
-      // Récupérer toutes les séances
+      // Fetch all sessions
       const sessionsResponse = await axios.get(`${API_URL}/sessions`);
       this.sessions = sessionsResponse.data;
     } catch (error) {
-      console.error("Error fetching movie or session details:", error);
+      // Handle errors during API calls
+      Swal.fire({
+        icon: "error",
+        title: "Erreur",
+        text: "Une erreur est survenue lors de la récupération des données.",
+      });
     }
   },
   computed: {
-    // Filtrer les séances pour n'afficher que celles correspondant au film actuel
+    // Filter sessions to display only those related to the current movie and in the future
     filteredSessions() {
       if (!this.movie || !this.sessions) return [];
 
       return this.sessions
-        .filter(session => session.movie && session.movie.id === this.movie.id)
+        .filter(session => {
+          const sessionDate = new Date(session.date_hour);
+          return session.movie && session.movie.id === this.movie.id && sessionDate >= new Date();
+        })
         .map(session => {
           return {
             ...session,
-            formattedDate: this.formatDate(session.date_hour)
+            formattedDate: this.formatDate(session.date_hour) // Format session date
           };
         });
     }
   },
   methods: {
+    // Format ISO date string into a readable French format
     formatDate(isoString) {
       const date = new Date(isoString);
       const formattedDate = date.toLocaleDateString("fr-FR", {
@@ -118,25 +134,25 @@ export default {
       return `Le ${formattedDate} à ${formattedTime}`;
     },
 
-    // Retourne le nombre de billets actuel pour une séance
+    // Get the current ticket count for a session
     getTicketsCount(session) {
       return session.quantity || 0;
     },
 
-    // Mettre à jour le nombre de billets pour une séance
+    // Update the ticket count for a session
     updateTicketCount(session, newCount) {
       newCount = parseInt(newCount, 10);
       if (isNaN(newCount) || newCount < 0) {
         newCount = 0;
       }
       if (newCount > session.room.capacity) {
-        newCount = session.room.capacity; // Ne pas dépasser la capacité de la salle
+        newCount = session.room.capacity; // Ensure the count does not exceed room capacity
       }
 
       session.quantity = newCount;
     },
 
-    // Ajouter un article au panier (création d'un objet Basket)
+    // Add a session to the basket
     async addToBasket(session) {
       const ticketCount = session.quantity || 0;
 
@@ -149,7 +165,7 @@ export default {
         return;
       }
 
-      // Vérifier si l'utilisateur est connecté
+      // Check if the user is logged in
       const token = localStorage.getItem("token");
       if (!token) {
         Swal.fire({
@@ -163,7 +179,7 @@ export default {
       try {
         const API_URL = import.meta.env.VITE_API_URL;
 
-        // Récupérer l'utilisateur connecté
+        // Fetch the logged-in user's details
         const userResponse = await axios.get(`${API_URL}/auth/user/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -179,7 +195,7 @@ export default {
 
         this.userId = userResponse.data.id;
 
-        // Récupérer le panier pour voir si la séance y est déjà
+        // Check if the session is already in the basket
         const basketResponse = await axios.get(`${API_URL}/basket/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -189,7 +205,7 @@ export default {
         );
 
         if (existingItem) {
-          // Mettre à jour la quantité avec PATCH
+          // Update the quantity in the basket using PATCH
           await axios.patch(
             `${API_URL}/basket/${existingItem.id}/`,
             { quantity: existingItem.quantity + ticketCount },
@@ -201,7 +217,7 @@ export default {
             text: "Quantité mise à jour dans le panier !",
           });
         } else {
-          // Ajouter une nouvelle séance au panier avec POST
+          // Add a new session to the basket using POST
           await axios.post(
             `${API_URL}/basket/`,
             { session_id: session.id, quantity: ticketCount, user_id: this.userId },
@@ -214,7 +230,7 @@ export default {
           });
         }
       } catch (error) {
-        console.error("Erreur lors de l'ajout au panier:", error);
+        // Handle errors during the basket update process
         Swal.fire({
           icon: "error",
           title: "Erreur",

@@ -6,69 +6,82 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .models import Movie, Room, Session, Basket
 from .serializers import UserSerializer, MovieSerializer, RoomSerializer, SessionSerializer, BasketSerializer
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 import stripe
 from django.conf import settings
+import time
+from django.utils.text import slugify
 
-# Récupérer le modèle User
+# Get the User model
 User = get_user_model()
 
+# Environment variables for frontend URL and Stripe secret key
 FRONTEND_URL = os.getenv("FRONTEND_URL")
-
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+
 # =======================
 # VIEWSETS
 # =======================
 
 class UserViewSet(viewsets.ModelViewSet):
     """
-    CRUD pour les utilisateurs.
+    CRUD operations for users.
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]  
 
     def perform_create(self, serializer):
-        """ Hash le mot de passe avant de sauvegarder l'utilisateur """
+        """
+        Hash the password before saving the user.
+        """
         user = serializer.save()
         user.set_password(user.password)
         user.save()
 
 class MovieViewSet(viewsets.ModelViewSet):
+    """
+    CRUD operations for movies.
+    """
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
     permission_classes = [permissions.AllowAny]
 
 class RoomViewSet(viewsets.ModelViewSet):
+    """
+    CRUD operations for rooms.
+    """
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
     permission_classes = [permissions.AllowAny]
 
 class SessionViewSet(viewsets.ModelViewSet):
+    """
+    CRUD operations for sessions.
+    """
     queryset = Session.objects.all()
     serializer_class = SessionSerializer
     permission_classes = [permissions.AllowAny]
 
 class BasketViewSet(viewsets.ModelViewSet):
     """
-    Gère les opérations CRUD pour les paniers d'achat.
+    Handles CRUD operations for shopping baskets.
     """
     serializer_class = BasketSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Seuls les utilisateurs authentifiés ont accès
+    permission_classes = [permissions.IsAuthenticated]  # Only authenticated users can access
 
     def get_queryset(self):
         """
-        Récupère uniquement les paniers de l'utilisateur connecté qui ne sont pas payés.
+        Retrieve only the baskets of the logged-in user that are not paid.
         """
         return Basket.objects.filter(user=self.request.user, payed=False)
 
     def perform_create(self, serializer):
         """
-        Lorsqu'un utilisateur ajoute un article, on assigne automatiquement son panier à son compte.
+        Automatically assign the basket to the logged-in user when an item is added.
         """
         serializer.save(user=self.request.user)
 
@@ -79,33 +92,36 @@ class BasketViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def create_checkout_session(request):
     """
-    Crée une session Stripe pour le paiement.
+    Create a Stripe session for payment.
     """
-    user = request.user  # Récupère l'utilisateur connecté grâce au token
+    user = request.user  # Get the logged-in user using the token
 
+    # Retrieve unpaid cart items for the user
     cart_items = Basket.objects.filter(user=user, payed=False).select_related("session")
 
     if not cart_items.exists():
-        return Response({"error": "Aucun billet à payer"}, status=400)
+        return Response({"error": "No tickets to pay for"}, status=400)
 
-    total_amount = sum(item.quantity * 16 for item in cart_items)  # Prix total en CHF
+    # Calculate the total amount in CHF
+    total_amount = sum(item.quantity * 16 for item in cart_items)
 
     try:
+        # Create a Stripe checkout session
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
             line_items=[
                 {
                     "price_data": {
                         "currency": "chf",
-                        "product_data": {"name": "Réservation cinéma"},
-                        "unit_amount": total_amount * 100,  # Convertir CHF en centimes
+                        "product_data": {"name": "Cinema Reservation"},
+                        "unit_amount": total_amount * 100,  # Convert CHF to cents
                     },
                     "quantity": 1,
                 }
             ],
             mode="payment",
-            success_url = f"{FRONTEND_URL}/payment/success",
-            cancel_url = f"{FRONTEND_URL}/payment/cancel",
+            success_url=f"{FRONTEND_URL}/payment/success",
+            cancel_url=f"{FRONTEND_URL}/payment/cancel",
         )
 
         return Response({"checkout_url": session.url})
@@ -117,86 +133,91 @@ def create_checkout_session(request):
 @permission_classes([IsAuthenticated])
 def payment_success(request):
     """
-    Met à jour le panier de l'utilisateur en mettant 'payed' à True.
+    Update the user's basket by setting 'payed' to True after successful payment.
     """
-    user = request.user  # Récupération de l'utilisateur depuis le token
+    user = request.user  # Get the user from the token
     
     try:
-        # Récupérer tous les paniers non payés de l'utilisateur
+        # Retrieve all unpaid baskets for the user
         baskets = Basket.objects.filter(user=user)
         
         if not baskets.exists():
-            return Response({'message': 'Aucun panier à mettre à jour.'}, status=404)
+            return Response({'message': 'No basket to update.'}, status=404)
 
-        # Mettre à jour chaque panier
+        # Update each basket
         baskets.update(payed=True)
 
-        return Response({'message': 'Paiement confirmé, panier mis à jour avec succès.'}, status=200)
+        return Response({'message': 'Payment confirmed, basket updated successfully.'}, status=200)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
 
 def payment_cancel(request):
     """
-    Réponse lorsqu'un paiement est annulé par l'utilisateur.
+    Response when a payment is canceled by the user.
     """
-    return JsonResponse({'message': 'Paiement annulé, panier inchangé.'})
+    return JsonResponse({'message': 'Payment canceled, basket unchanged.'})
   
 # =======================
-# AUTHENTIFICATION
+# AUTHENTICATION
 # =======================
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_user(request):
     """
-    Endpoint pour enregistrer un nouvel utilisateur avec validation du mot de passe.
+    Endpoint to register a new user with password validation.
     """
     username = request.data.get("username")
     email = request.data.get("email")
     password = request.data.get("password")
 
-    # Vérification des champs requis
+    # Check required fields
     if not username or not email or not password:
-        return Response({"error": "Tous les champs sont requis."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "All fields are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Vérification de l'existence de l'email
+    # Check if the email already exists
     if User.objects.filter(email=email).exists():
-        return Response({"error": "Un utilisateur avec cet email existe déjà."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "A user with this email already exists."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Vérification du mot de passe
+    # Validate the password
     password_error = is_valid_password(password)
     if password_error:
         return Response({"error": password_error}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # If the username already exists, make it unique (slugified + timestamp)
+    if User.objects.filter(username=username).exists():
+        base = slugify(username)
+        username = f"{base}_{int(time.time())}"
 
-    # Création de l'utilisateur
+    # Create the user
     user = User.objects.create_user(username=username, email=email, password=password)
 
-    return Response({"message": "Compte créé avec succès. Vous pouvez maintenant vous connecter."}, status=status.HTTP_201_CREATED)
+    return Response({"message": "Account successfully created. You can now log in."}, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
     """
-    Endpoint pour authentifier un utilisateur et renvoyer un token JWT.
+    Endpoint to authenticate a user and return a JWT token.
     """
     email = request.data.get("email")
     password = request.data.get("password")
 
     if not email or not password:
-        return Response({"error": "Email et mot de passe requis"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Email and password are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Vérifier si l'utilisateur existe
+    # Check if the user exists
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
-        return Response({"error": "Utilisateur introuvable"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    # Authentifier avec son username car Django utilise username par défaut
+    # Authenticate using the username since Django uses username by default
     user = authenticate(username=user.username, password=password)
     if user is None:
-        return Response({"error": "Mot de passe incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"error": "Incorrect password"}, status=status.HTTP_401_UNAUTHORIZED)
 
-    # Générer un token JWT avec SimpleJWT
+    # Generate a JWT token using SimpleJWT
     refresh = RefreshToken.for_user(user)
     return Response({
         "refresh": str(refresh),
@@ -212,21 +233,21 @@ def login_user(request):
 @permission_classes([IsAuthenticated])
 def get_user_info(request):
     """
-    Récupère les infos de l'utilisateur connecté.
+    Retrieve information about the logged-in user.
     """
     user = request.user
     return Response({'id': user.id, 'username': user.username, 'email': user.email, 'is_superuser': user.is_superuser})
 
 def is_valid_password(password):
     """
-    Vérifie si le mot de passe a au moins :
-    - 8 caractères
-    - 1 caractère spécial parmi (!@#$%^&*())
+    Check if the password meets the following criteria:
+    - At least 8 characters
+    - At least 1 special character from (!@#$%^&*())
     """
     if len(password) < 8:
-        return "Le mot de passe doit contenir au moins 8 caractères."
+        return "The password must be at least 8 characters long."
 
     if not re.search(r"[!@#$%^&*()]", password):
-        return "Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*())."
+        return "The password must contain at least one special character (!@#$%^&*())."
 
-    return None  # Aucun problème
+    return None  # No issues with the password
