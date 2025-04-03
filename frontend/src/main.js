@@ -6,6 +6,8 @@ import store from "./store";
 // Importer Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+
 
 // Vérification du token expiré
 const token = localStorage.getItem("token")
