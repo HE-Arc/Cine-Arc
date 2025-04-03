@@ -5,7 +5,7 @@
         <router-link to="/" class="btn btn-primary">Retour à l'accueil</router-link>
     </div>
 </template>
-  
+
 <script setup>
 import { onMounted } from "vue";
 import axios from "axios";
@@ -22,7 +22,7 @@ onMounted(async () => {
 
         // Mise à jour du panier après le paiement
         const response = await axios.post(
-            `${API_URL}/payment/success/`, 
+            `${API_URL}/payment/success/`,
             {},  // Ajouter un objet vide dans la requête `POST`
             {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

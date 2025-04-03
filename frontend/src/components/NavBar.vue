@@ -40,6 +40,12 @@
 
 <script>
 import axios from "axios";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import Swal from "sweetalert2";
+
+const isLoggedIn = ref(!!localStorage.getItem("token"));
+const router = useRouter();
 
 export default {
   data() {
@@ -77,9 +83,23 @@ export default {
     },
     logout() {
       localStorage.removeItem("token");
+      this.isLoggedIn = false;
       this.isAuthenticated = false;
       this.isAdmin = false;
-      window.location.href = "/";
+
+      Swal.fire({
+        title: "Déconnexion réussie",
+        text: "Vous avez été déconnecté.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      setTimeout(() => {
+        router.push("/login").then(() => {
+          location.reload();
+        });
+      }, 2000);
     }
   }
 };
