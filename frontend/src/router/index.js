@@ -79,4 +79,14 @@ router.beforeEach((to, from, next) => {
   }
 });
 
+
+router.afterEach((to, from) => {
+  const shouldRefresh = ["/basket", "/payment/success", "/sessions"];
+
+  if (shouldRefresh.includes(to.path)) {
+    window.location.reload();
+  }
+});
+
+
 export default router;
