@@ -4,57 +4,55 @@ import os
 import django
 from datetime import datetime, timedelta
 
-# Charger Django
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cinearc.settings")  # Mets ici le bon nom de ton projet Django
+# Load Django settings
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cinearc.settings")  # Replace with your Django project name
 django.setup()
 
 from cinearcapp.models import Movie, Room
 
-# Vérifier que le dossier `fixtures/` existe
+# Ensure the `fixtures/` directory exists
 os.makedirs("cinearcapp/fixtures", exist_ok=True)
 
-# Récupérer les films et salles stockés en base
+# Retrieve movies and rooms from the database
 movies = list(Movie.objects.all())
 rooms = list(Room.objects.all())
 
-# Vérifier qu'on a bien des films et des salles
+# Check if there are movies and rooms in the database
 if not movies or not rooms:
-    print("Aucune donnée de film ou salle trouvée en base.")
+    print("No movie or room data found in the database.")
     exit()
 
-# Générer des séances uniques en associant films et salles aléatoirement
+# Generate unique sessions by randomly associating movies and rooms
 sessions = []
-used_combinations = set()  # Pour éviter les doublons film/salle
+used_combinations = set()  # To avoid duplicate movie/room combinations
 
-for i in range(min(5, len(movies), len(rooms))):  # Prendre au max 5 films et salles
+for i in range(min(5, len(movies), len(rooms))):  # Limit to a maximum of 5 sessions
     movie = random.choice(movies)
     room = random.choice(rooms)
     
-    # Vérifier qu'on n'a pas déjà associé ce film à cette salle
+    # Ensure the movie/room combination is unique
     while (movie.id, room.id) in used_combinations:
         movie = random.choice(movies)
         room = random.choice(rooms)
 
-    used_combinations.add((movie.id, room.id))  # Ajouter à l'ensemble des combinaisons utilisées
+    used_combinations.add((movie.id, room.id))  # Mark the combination as used
 
-    # Générer une date dans les prochains jours
+    # Generate a session date in the upcoming days
     date_hour = (datetime.now() + timedelta(days=i)).strftime("%Y-%m-%dT%H:%M:%S")
 
     session = {
-        "model": "cinearcapp.session",
-        "pk": i + 1,
+        "model": "cinearcapp.session",  # Specify the model for the fixture
+        "pk": i + 1,  # Primary key for the session
         "fields": {
-            "movie": movie.id,
-            "room": room.id,
-            "date_hour": date_hour,
-            "available_seats": room.capacity  # Ajout de available_seats basé sur la capacité de la salle
+            "movie": movie.id,  # Movie ID
+            "room": room.id,  # Room ID
+            "date_hour": date_hour,  # Date and time of the session
+            "available_seats": room.capacity  # Available seats based on room capacity
         }
     }
     sessions.append(session)
 
-# Sauvegarde dans `sessions.json`
+# Save the generated sessions to `sessions.json`
 fixture_path = "cinearcapp/fixtures/sessions.json"
 with open(fixture_path, "w", encoding="utf-8") as f:
     json.dump(sessions, f, indent=4)
-
-print(f"La fixture `{fixture_path}` a été générée avec {len(sessions)} séances.")

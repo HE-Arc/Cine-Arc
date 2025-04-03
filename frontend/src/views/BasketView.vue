@@ -1,14 +1,18 @@
 <template>
   <div class="container mt-5">
     <h2>Mon Panier</h2>
+    <!-- Check if there are items in the basket -->
     <div v-if="baskets.length > 0">
       <div class="list-group">
+        <!-- Loop through each basket item and display its details -->
         <div v-for="basket in baskets" :key="basket.id" class="list-group-item d-flex justify-content-between align-items-center">
           <div>
+            <!-- Display movie title and session details -->
             <strong>{{ basket.session.movie.title }}</strong>
             <br> Séance : {{ formatDate(basket.session.date_hour) }} à {{ formatTime(basket.session.date_hour) }} - Salle {{ basket.session.room.name }}
           </div>
           <div class="d-flex align-items-center">
+            <!-- Input field to update the quantity of tickets -->
             <input
               type="number"
               class="form-control form-control-sm mx-2 text-center"
@@ -19,19 +23,23 @@
               @blur="updateQuantity(basket)"
               @keydown.enter="updateQuantity(basket)"
             />
+            <!-- Button to remove the item from the basket -->
             <button class="btn btn-danger btn-sm ml-2" @click="removeBasketItem(basket)">Supprimer</button>
           </div>
         </div>
       </div>
 
-      <!-- Total amount of the basket -->
+      <!-- Display the total amount and payment button -->
       <div class="mt-3 d-flex justify-content-between align-items-center">
+        <!-- Button to process payment -->
         <button class="btn btn-success" @click="processPayment" :disabled="loading">
           {{ loading ? "Redirection vers Stripe..." : "Payer avec Stripe" }}
         </button>
+        <!-- Display the total amount -->
         <h4 class="mb-0">Total : {{ totalAmount }}.- CHF</h4>
       </div>
     </div>
+    <!-- Message to display if the basket is empty -->
     <div v-else>
       <p>Votre panier est vide.</p>
     </div>

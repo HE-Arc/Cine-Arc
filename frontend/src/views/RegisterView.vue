@@ -2,37 +2,45 @@
   <div class="container">
     <h2>Créer un compte</h2>
 
+    <!-- Form for user registration -->
     <form @submit.prevent="register">
-    <div class="form-group">
-      <label>Nom d'utilisateur</label>
-      <input v-model="username" type="text" class="form-control" required />
-    </div>
+      <!-- Username input field -->
+      <div class="form-group">
+        <label>Nom d'utilisateur</label>
+        <input v-model="username" type="text" class="form-control" required />
+      </div>
 
-    <div class="form-group">
-      <label>Email</label>
-      <input v-model="email" type="email" class="form-control" required />
-    </div>
+      <!-- Email input field -->
+      <div class="form-group">
+        <label>Email</label>
+        <input v-model="email" type="email" class="form-control" required />
+      </div>
 
-    <div class="form-group">
-      <label>Mot de passe</label>
-      <input v-model="password" type="password" class="form-control" required />
-      <small class="text-muted">
-      Doit contenir au moins 8 caractères et un caractère spécial (!@#$%^&*).
-      </small>
-    </div>
+      <!-- Password input field with validation hint -->
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input v-model="password" type="password" class="form-control" required />
+        <small class="text-muted">
+          Doit contenir au moins 8 caractères et un caractère spécial (!@#$%^&*).
+        </small>
+      </div>
 
-    <div class="form-group">
-      <label>Confirmer le mot de passe</label>
-      <input v-model="confirmPassword" type="password" class="form-control" required />
-    </div>
+      <!-- Confirm password input field -->
+      <div class="form-group">
+        <label>Confirmer le mot de passe</label>
+        <input v-model="confirmPassword" type="password" class="form-control" required />
+      </div>
 
-    <p v-if="errorMessage" class="text-danger mt-2">{{ errorMessage }}</p>
+      <!-- Display error message if any -->
+      <p v-if="errorMessage" class="text-danger mt-2">{{ errorMessage }}</p>
 
-    <button type="submit" class="btn btn-primary">S'inscrire</button>
+      <!-- Submit button -->
+      <button type="submit" class="btn btn-primary">S'inscrire</button>
     </form>
 
+    <!-- Link to login page for existing users -->
     <p class="mt-3">
-    Déjà un compte ? <router-link to="/login">Se connecter</router-link>
+      Déjà un compte ? <router-link to="/login">Se connecter</router-link>
     </p>
   </div>
 </template>

@@ -1,11 +1,8 @@
 <template>
   <!-- Main container for the 404 Not Found page -->
   <div class="not-found-container">
-    <!-- Heading for the 404 error -->
     <h1>404 - Page non trouvée</h1>
-    <!-- Message to inform the user that the page does not exist -->
     <p>Oups ! La page que vous recherchez n'existe pas.</p>
-    <!-- Link to redirect the user back to the homepage -->
     <router-link to="/" class="home-button">Retour à l'accueil</router-link>
   </div>
 </template>

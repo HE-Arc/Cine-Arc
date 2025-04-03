@@ -2,21 +2,28 @@
   <div class="container">
     <h2>Connexion</h2>
     <form @submit.prevent="validateForm">
+      <!-- Email input field -->
       <div class="form-group mb-3">
         <label>Email</label>
         <input v-model="email" type="email" class="form-control" />
+        <!-- Display email-specific error message -->
         <small v-if="emailError" class="text-danger">{{ emailError }}</small>
       </div>
 
+      <!-- Password input field -->
       <div class="form-group mb-3">
         <label>Mot de passe</label>
         <input v-model="password" type="password" class="form-control" />
+        <!-- Display password-specific error message -->
         <small v-if="passwordError" class="text-danger">{{ passwordError }}</small>
       </div>
 
+      <!-- Submit button -->
       <button type="submit" class="btn btn-success">Se connecter</button>
+      <!-- Display general error message -->
       <p v-if="errorMessage" class="text-danger mt-2">{{ errorMessage }}</p>
 
+      <!-- Link to the registration page -->
       <p class="mt-3">
         Pas encore de compte ? <router-link to="/register">Créer un compte</router-link>
       </p>

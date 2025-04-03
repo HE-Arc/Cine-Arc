@@ -6,13 +6,15 @@
         <div v-if="movie" class="card movie-card">
           <div class="card-body">
             <div class="card mb-3">
+              <!-- Display movie poster -->
               <img :src="movie.picture_url" :alt="movie.title" class="card-img-top movie-img" />
             </div>
+            <!-- Display movie title, release date, duration, genre, and rating -->
             <h5 class="card-title">{{ movie.title }}</h5>
             <h6 class="card-subtitle mb-2 text-muted">{{ movie.release_date }}</h6>
-            <p><strong>Durée :</strong> {{ movie.duration }} min</p>
-            <p><strong>Genre :</strong> {{ movie.type }}</p>
-            <p><strong>Note :</strong>  {{ movie.rating }} / 10 ⭐</p>
+            <p><strong>Duration:</strong> {{ movie.duration }} min</p>
+            <p><strong>Genre:</strong> {{ movie.type }}</p>
+            <p><strong>Rating:</strong>  {{ movie.rating }} / 10 ⭐</p>
           </div>
         </div>
       </div>
@@ -21,6 +23,7 @@
       <div class="col-md-8">
         <div v-if="movie" class="card mb-3">
           <div class="card-body">
+            <!-- Display movie synopsis -->
             <h5 class="card-title">Synopsis</h5>
             <p>{{ movie.synopsis }}</p>
           </div>
@@ -32,8 +35,10 @@
             <h5 class="card-title">Séances disponibles</h5>
             <div v-if="filteredSessions.length > 0">
               <ul class="list-group">
+                <!-- Loop through filtered sessions and display each session -->
                 <li v-for="session in filteredSessions" :key="session.id" class="list-group-item d-flex justify-content-between align-items-center">
                   <div>
+                    <!-- Display session date and room name -->
                     <strong>{{ session.formattedDate }}</strong> - {{ session.room.name }}
                   </div>
                   <div class="d-flex align-items-center">
@@ -46,13 +51,15 @@
                       class="form-control form-control-sm"
                       @input="updateTicketCount(session, $event.target.value)"
                     />
-                    <button @click="addToBasket(session)" class="btn btn-sm btn-primary ml-2">Ajouter</button>
+                    <!-- Button to add session to the basket -->
+                    <button @click="addToBasket(session)" class="btn btn-sm btn-primary ml-2">Add</button>
                   </div>
                 </li>
               </ul>
             </div>
             <div v-else>
-              <p>Aucune séance n'est disponible pour ce film</p>
+              <!-- Message displayed if no sessions are available -->
+              <p>Aucune séance disponible pour ce film</p>
             </div>
           </div>
         </div>
