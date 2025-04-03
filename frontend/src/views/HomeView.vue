@@ -5,9 +5,8 @@
     <!-- Display spinner while loading -->
     <div v-if="loading" class="text-center">
       <div class="spinner-border" role="status">
-        <span class="sr-only">Loading...</span>
+        <span class="visually-hidden">Loading...</span>
       </div>
-      <p>Chargement des films...</p>
     </div>
 
     <!-- Display movies in a grid with 4 fixed columns -->
